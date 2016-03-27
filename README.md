@@ -5,7 +5,7 @@
 因为是小项目，程序没有使用任何 PHP 框架，而前端唯一使用到的只有 highstock 以及 highstock 依赖的 jQuery。
 手机上用得比较多，懒得写 UI，各位好心人可以帮忙加上。。。
 
-作者博客 [blog](http://233.imjs.work/)
+作者博客 [http://233.imjs.work/](http://233.imjs.work/)
 
 ###安装
 导入 import.sql，修改 config.php
