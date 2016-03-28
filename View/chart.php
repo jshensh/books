@@ -39,7 +39,7 @@
                     lastDate=parseInt(statements[0]["t"])*1000+28800000;
                 for (var i=0; i < statements.length; i++) {
                     var nowDate=parseInt(statements[i]["t"])*1000+28800000;
-                    for (true;lastDate<nowDate;lastDate+=86400000) {
+                    for (true;lastDate<nowDate-86400000;lastDate+=86400000) {
                         yezs.push([
                             lastDate, // the date
                             parseFloat(lastClose), // open
