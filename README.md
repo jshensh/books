@@ -20,6 +20,13 @@
     $key=""; //加密 key，一定要修改，任意字符均可
     $expiry=604800; //cookie 有效期（单位：秒）
 
+添加 rewrite 规则（Apache 请自行百度）
+    location ~ ^/[^\/\.]*$ {
+        if (!-e $request_filename) {
+            rewrite ^ /index.php last;
+        }
+    }
+
 ###添加交易方式
 需要在数据库手动添加
 ![screenshot2](http://233.imjs.work/wp-content/uploads/2016/03/QQ截图20160327220407.jpg)
