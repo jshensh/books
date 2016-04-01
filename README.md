@@ -21,6 +21,7 @@
     $expiry=604800; //cookie 有效期（单位：秒）
 
 添加 rewrite 规则（Apache 请自行百度）
+
     location ~ ^/[^\/\.]*$ {
         if (!-e $request_filename) {
             rewrite ^ /index.php last;
