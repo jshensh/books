@@ -62,7 +62,7 @@
             }
         }
     } else {
-        if ($_GET["rollback"]=="true" && in_array($_SERVER["HTTP_REFERER"],array("http://zb.imjs.work/","http://zb.imjs.work/index.php","http://zb.imjs.work/index","http://zb.imjs.work/?rollback=true"))) {
+        if ($_GET["rollback"]=="true" && !$_POST) {
             $rollbackStatus=doRollback();
         }
     }

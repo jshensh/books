@@ -7,7 +7,7 @@
     getHeader("账簿");
 ?>
         <center>
-            <form action="" method="post">
+            <form action="index" method="post">
                 <p id="msg" style="display: none;"></p>
                 <p><select name="transactMode" id="transactMode"></select></p>
                 <p id="txtP"><label for="txt">备注：</label><input type="text" name="txt" id="txt" /></p>
