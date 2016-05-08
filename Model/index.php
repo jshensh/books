@@ -71,7 +71,7 @@
 
     $amount=json_stringify($dblink->query("select `a`.`id`,`a`.`name`, ifnull(sum(`b`.`money`),0) as `s` from `transactMode` as `a` left join `transactions` as `b` on `b`.`transactMode` = `a`.`id` group by `a`.`id`")->fetchAll(PDO::FETCH_ASSOC));
     $loanSum=json_stringify($dblink->query("select sum(`money`) as `s` from `loan`")->fetch(PDO::FETCH_ASSOC));
-    $yesterdayTotal=$dblink->query("select if(count(`id`)=0,0,`closed`) as `closed` from `statements` where `t` = ".(strtotime(date("Y-m-d"))-86400))->fetch(PDO::FETCH_ASSOC);
+    $yesterdayTotal=$dblink->query("select if(count(`id`)=0,0,`closed`) as `closed` from (select `id`,`closed` from `statements` where `t` != ".strtotime(date("Y-m-d"))." order by `t` desc limit 1 offset 0)tb")->fetch(PDO::FETCH_ASSOC);
     $todayTotal=$dblink->query("select if(count(`id`)=0,0,`closed`) as `closed` from `statements` where `t` = ".strtotime(date("Y-m-d")))->fetch(PDO::FETCH_ASSOC);
     $todayTotal["closed"]=$todayTotal["closed"]==0?0:($todayTotal["closed"]-$yesterdayTotal["closed"]); 
     $todayTotal=json_stringify($todayTotal);
