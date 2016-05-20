@@ -8,6 +8,12 @@
     $command=$len?substr($_SERVER["REQUEST_URI"],1,$len-1):substr($_SERVER["REQUEST_URI"],1);
     $command=$command?$command:"index";
 
+    switch ($command) {
+        case 'loanShare':
+            require("Model/{$command}.php");
+            require("View/{$command}.php");
+            exit();
+    }
     if (!checkLogin() && $command!=="login") {
         header("Location: login");
         exit();

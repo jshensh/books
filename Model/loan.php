@@ -12,6 +12,13 @@
         $delQry=$dblink->prepare("delete from `loan` where `name`=:name;");
         $delQry->execute(array(":name"=>$_GET["name"]));
         $getList=true;
+    } elseif ($_POST["shareTime"]) {
+        if (is_numeric($_POST["shareTime"]) && $_POST["shareTime"]>0) {
+            echo json_stringify(array("status"=>"success","token"=>ucAuthCode($_GET["name"],"ENCODE",$key,$_POST["shareTime"]*60)));
+        } else {
+            echo json_stringify(array("status"=>"error"));
+        }
+        exit();
     } else {
         if ($_GET["name"]) {
             $op=$dblink->prepare("select `loan`.`id`,`loan`.`name`,`transactMode`.`name`,`loan`.`money`,`loan`.`txt`,`loan`.`t` from `loan`,`transactMode` where `loan`.`name`=:name and `transactMode`.`id`=`loan`.`transactMode` order by `loan`.`t`;");

@@ -83,7 +83,6 @@
                     title: {
                         text: '余额变化走势'
                     },
-
                     yAxis: [{
                         labels: {
                             align: 'right',

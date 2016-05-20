@@ -6,7 +6,7 @@
 
     getHeader("借贷款明细");
 ?>
-        <div id="allList" style="display: none;"></div>
+        <div id="errmsg" style="display: none;"><p>无法访问指定账单，请联系您的债权人重新获取链接</p></div>
         <div id="detail" style="display: none;">
             <center>
                 <table style="text-align: center;">
@@ -60,14 +60,9 @@
 
                     </tbody>
                 </table>
-                <p><a href="####" onclick="doDelete();">销账</a>&nbsp;&nbsp;&nbsp;<a href="####" onclick="getShareLink();">分享账单给债务人</a></p>
-                <form action="" method="post" id="del">
-                    <input type="hidden" name="delete" value="true" />
-                </form>
             </center>
         </div>
 
-        <script src="http://cdn.hcharts.cn/jquery/jquery-1.8.3.min.js"></script>
         <script>
             Date.prototype.Format = function(fmt) {
                 var o = {
@@ -88,34 +83,7 @@
             };
             function num_fix(num) {
                 return parseFloat(parseFloat(String(num).replace(/[^\d\-\.]/g,"")).toFixed(2));
-            };
-            var doDelete=function() {
-                var name=<?=json_encode($_GET["name"]);?>;
-                if (prompt("您正要进行销账操作，该操作无法撤回。在您正确输入“"+name+"”后才可继续操作")==name) {
-                    document.getElementById('del').submit();
-                } else {
-                    alert("已取消操作");
-                }
-            };
-            var getShareLink=function() {
-                $.ajax({
-                    type: 'post',
-                    url: location.href,
-                    dataType: 'json',
-                    timeout: 5000,
-                    data: {"shareTime": prompt("请输入链接有效时长（分钟）：","30")},
-                    success: function(re) {
-                        if (re["status"]==="success") {
-                            prompt("复制以下链接",location.origin+location.pathname.match(/.*\//)+"loanShare?token="+encodeURIComponent(re["token"]));
-                        } else {
-                            alert("请求失败");
-                        }
-                    },
-                    error: function(XMLHttpRequest,status) {
-                        alert("请求失败");
-                    }
-                });
-            };
+            }
             window.onload=function() {
                 var data=<?=$data;?>;
                 var setName=<?=$setName;?>;
@@ -137,13 +105,7 @@
                         document.getElementById('detailLine').innerHTML+="<tr><td>"+new Date(parseInt(data[i]["t"])*1000).Format("yyyy-MM-dd hh:mm:ss")+"</td><td>"+data[i]["txt"]+"</td>"+(parseFloat(data[i]["money"])<0?getFormatMoney(data[i]["money"],true):getFormatMoney("",false))+(parseFloat(data[i]["money"])>0?getFormatMoney(data[i]["money"],true):getFormatMoney("",false))+"<td>"+(parseFloat(data[i]["money"])>0?"贷":"借")+"</td><td>"+(parseFloat(data[i]["money"])>0?parseFloat(data[i]["money"]).toFixed(2):"<span style=\"color: red\">("+Math.abs(parseFloat(data[i]["money"])).toFixed(2)+")</span>")+"</td>"+getFormatMoney(money,false)+"</tr>";
                     }
                 } else {
-                    document.getElementById('allList').style["display"]="block";
-                    var toHtml="<ol>";
-                    for (var i=0;i<data.length;i++) {
-                        toHtml+="<li><a href=\"?name="+encodeURIComponent(data[i]["name"])+"\">"+new Date(parseInt(data[i]["minT"])*1000).Format("yyyy-MM-dd hh:mm:ss")+" 起共"+(parseFloat(data[i]["all"])>0?"从":"向")+" "+data[i]["name"]+" "+(parseFloat(data[i]["all"])>0?"贷入":"借出")+" "+Math.abs(parseFloat(data[i]["all"])).toFixed(2)+" 元</a></li>";
-                        money+=parseFloat(data[i]["all"]);
-                    }
-                    document.getElementById('allList').innerHTML=toHtml+"<p>共计 "+money.toFixed(2)+" 元</p></ol>";
+                    document.getElementById('errmsg').style["display"]="block";
                 }
             }
         </script>
