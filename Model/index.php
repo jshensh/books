@@ -33,6 +33,10 @@
         if ($re["loanID1"]==0 && $re["loanID2"]==0 && $re["transactionsID1"]==0 && $re["transactionsID2"]==0 && $re["lowOut"]==0 && $re["highOut"]==0 && $re["closedOut"]==0) {
             return false;
         }
+        $re["transactMode"]=$mode;
+        $re["txt"]=$txt;
+        $re["money"]=$money;
+        $re["name"]=$name;
         return $re;
     }
 
@@ -46,7 +50,7 @@
         $reQuery->execute(array(":p0"=>$rollbackID["loanID1"],":p1"=>$rollbackID["loanID2"],":p2"=>$rollbackID["transactionsID1"],":p3"=>$rollbackID["transactionsID2"],":p4"=>$rollbackID["lowOut"],":p5"=>$rollbackID["highOut"],":p6"=>$rollbackID["closedOut"],":p7"=>strtotime(date("Y-m-d"))));
         $re=$dblink->query("SELECT @p8 AS `status`;")->fetch(PDO::FETCH_ASSOC);
         unset($_SESSION["rollbackID"]);
-        return $re["status"]==0?false:true;
+        return $re["status"]==0?false:array("transactMode"=>$rollbackID["transactMode"],"txt"=>$rollbackID["txt"],"money"=>$rollbackID["money"],"name"=>$rollbackID["name"]);
     }
 
     $transactModeList=json_stringify(getTransactModeList());

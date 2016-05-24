@@ -81,3 +81,40 @@
         }
         return false;
     }
+
+    function curl_get_contents($url,$timeout=5,$method='get',$post_fields=array(),$reRequest=3,$referer="") { //封装 curl
+        $ch = curl_init();
+        curl_setopt($ch, CURLOPT_URL, $url);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
+        curl_setopt($ch, CURLOPT_HEADER, 0);
+        curl_setopt($ch, CURLOPT_TIMEOUT, $timeout);
+        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, FALSE );
+        curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false );
+        curl_setopt($ch, CURLOPT_REFERER, $referer);
+        if (strpos($method,'post')>-1) {
+            curl_setopt($ch, CURLOPT_POST, true);
+            curl_setopt($ch, CURLOPT_POSTFIELDS,$post_fields);
+        }
+        if (strpos($method,'WithHeader')>-1) {
+            curl_setopt($ch, CURLOPT_HEADER, true);
+            curl_setopt($ch, CURLOPT_NOBODY, false);
+        }
+        $output = curl_exec($ch);
+        if (curl_errno($ch)==0) {
+            if (strpos($method,'WithHeader')>-1) {
+                $headerSize = curl_getinfo($ch, CURLINFO_HEADER_SIZE);
+                $header = substr($output, 0, $headerSize);
+                $body = substr($output, $headerSize);
+                return array($header,$body,$output);
+            } else {
+                return $output;
+            }
+        } else {
+            if ($reRequest) {
+                $reRequest--;
+                return curl_get_contents($url,$timeout,$method,$post_fields,$reRequest);
+            } else {
+                return false;
+            }
+        }
+    }

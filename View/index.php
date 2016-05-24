@@ -102,10 +102,19 @@
                 }
                 setInterval(updateTime, 1000);
                 var postStatus=<?=$op;?>;
-                var rollbackStatus=<?=$rollbackStatus===NULL?"null":($rollbackStatus?1:0);?>;
+                var rollbackStatus=<?=$rollbackStatus===NULL?"null":($rollbackStatus?json_stringify($rollbackStatus):0);?>;
                 if (rollbackStatus!==null) {
                     document.getElementById('msg').innerHTML="撤销"+(rollbackStatus?"成功":"失败");
                     document.getElementById('msg').style["display"]="block";
+                    if (rollbackStatus) {
+                        document.getElementById('transactMode').value=rollbackStatus["transactMode"];
+                        if (rollbackStatus["name"]) {
+                            document.getElementById('name').value=rollbackStatus["name"];
+                            document.getElementById('loan').click();
+                        }
+                        document.getElementById('money').value=Math.abs(parseFloat(rollbackStatus["money"]));
+                        document.getElementById('txt').value=rollbackStatus["txt"];
+                    }
                 }
                 if (postStatus>-1) {
                     document.getElementById('msg').innerHTML="插入"+(postStatus?"成功&nbsp;<a href=\"?rollback=true\">撤销</a>":"失败");
