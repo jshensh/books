@@ -4,7 +4,7 @@
         exit();
     }
 
-    getHeader("借贷款明细");
+    getHeader("借贷账目明细");
 ?>
         <div id="errmsg" style="display: none;"><p>无法访问指定账单，请联系您的债权人重新获取链接</p></div>
         <div id="detail" style="display: none;">

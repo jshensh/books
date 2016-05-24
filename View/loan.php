@@ -4,7 +4,7 @@
         exit();
     }
 
-    getHeader("借贷款明细");
+    getHeader("借贷账目明细");
 ?>
         <div id="allList" style="display: none;"></div>
         <div id="detail" style="display: none;">
