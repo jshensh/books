@@ -14,7 +14,13 @@
         $getList=true;
     } elseif ($_POST["shareTime"]) {
         if (is_numeric($_POST["shareTime"]) && $_POST["shareTime"]>0) {
-            echo json_stringify(array("status"=>"success","token"=>ucAuthCode($_GET["name"],"ENCODE",$key,$_POST["shareTime"]*60)));
+            $token=urlencode(ucAuthCode($_GET["name"],"ENCODE",$key,$_POST["shareTime"]*60));
+            $shortLink=json_decode(curl_get_contents("http://api.t.sina.com.cn/short_url/shorten.json?source=3213676317&url_long=".urlencode("{$_POST['path']}loanShare?token={$token}")),1);
+            if (!$shortLink) {
+                echo json_stringify(array("status"=>"error"));
+            } else {
+                echo json_stringify(array("status"=>"success","link"=>$shortLink[0]["url_short"]));
+            }
         } else {
             echo json_stringify(array("status"=>"error"));
         }

@@ -103,10 +103,10 @@
                     url: location.href,
                     dataType: 'json',
                     timeout: 5000,
-                    data: {"shareTime": prompt("请输入链接有效时长（分钟）：","30")},
+                    data: {"shareTime": prompt("请输入链接有效时长（分钟）：","30"), "path": location.origin+location.pathname.match(/.*\//)},
                     success: function(re) {
                         if (re["status"]==="success") {
-                            prompt("复制以下链接",location.origin+location.pathname.match(/.*\//)+"loanShare?token="+encodeURIComponent(re["token"]));
+                            prompt("复制以下链接",re["link"]);
                         } else {
                             alert("请求失败");
                         }
