@@ -225,6 +225,7 @@ CREATE TABLE IF NOT EXISTS `transactMode` (
   `withdrawal` tinyint(1) NOT NULL,
   `sk` tinyint(1) NOT NULL,
   `pay` tinyint(1) NOT NULL
+  `sortId` int(10) unsigned NOT NULL DEFAULT 0,
 ) ENGINE=MyISAM AUTO_INCREMENT=3 DEFAULT CHARSET=utf8;
 
 --
