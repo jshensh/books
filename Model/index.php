@@ -5,7 +5,7 @@
     }
 
     function getTransactModeList() {
-        return $GLOBALS["dblink"]->query("select * from `transactMode` order by `id`")->fetchAll(PDO::FETCH_ASSOC);
+        return $GLOBALS["dblink"]->query("select * from `transactMode` order by `sortId`,`id`")->fetchAll(PDO::FETCH_ASSOC);
     }
 
     function insertNew($mode,$txt,$money,$name="") {

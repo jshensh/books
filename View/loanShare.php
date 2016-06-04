@@ -6,6 +6,7 @@
 
     getHeader("借贷账目明细");
 ?>
+        <p id="rdp" style="display: none;">本链接将于 <span id="rd"></span> 后失效</p>
         <div id="errmsg" style="display: none;"><p>无法访问指定账单，请联系您的债权人重新获取链接</p></div>
         <div id="detail" style="display: none;">
             <center>
@@ -81,14 +82,31 @@
                         fmt = fmt.replace(RegExp.$1, (RegExp.$1.length==1) ? (o[k]) : (("00"+ o[k]).substr((""+ o[k]).length)));
                 return fmt;
             };
+            var updateTime=function(time) {
+                t=new Date(parseInt(time)*1000).getTime()-new Date().getTime();
+                if (t<=0) {
+                    document.getElementById("rdp").style["display"]="none";
+                    return false;
+                }
+                var d=Math.floor(t/1000/60/60/24);
+                var h=("0"+Math.floor(t/1000/60/60%24)).substr(-2);
+                var m=("0"+Math.floor(t/1000/60%60)).substr(-2);
+                var s=("0"+Math.floor(t/1000%60)).substr(-2);
+                document.getElementById("rd").innerHTML=(d?(d+" 天 "):"")+(h!=="00"?(h+" 时 "):"")+(m!=="00"?(m+" 分 "):"")+(s+" 秒");
+            };
             function num_fix(num) {
                 return parseFloat(parseFloat(String(num).replace(/[^\d\-\.]/g,"")).toFixed(2));
             }
             window.onload=function() {
                 var data=<?=$data;?>;
                 var setName=<?=$setName;?>;
+                
                 var money=0;
+                var rd=<?=$rd;?>;
                 if (setName) {
+                    document.getElementById("rdp").style["display"]="block";
+                    updateTime(rd);
+                    setInterval(function() { updateTime(rd); },1000);
                     document.getElementById('detail').style["display"]="block";
                     var getFormatMoney=function(value,needAbs) {
                         value=needAbs?Math.abs(parseFloat(value)):parseFloat(value);

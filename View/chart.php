@@ -119,5 +119,11 @@
             });
         </script>
 
-        <div id="container" style="height: 400px; min-width: 310px"></div>
+        <style>
+            html, body {
+                height: 98%;
+            }
+        </style>
+
+        <div id="container" style="height: 100%; min-width: 310px"></div>
 <?php getFooter(); ?>

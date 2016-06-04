@@ -60,7 +60,11 @@
         }
         if($operation == 'DECODE') {
             if((substr($result, 0, 10) == 0 || substr($result, 0, 10) - time() > 0) && substr($result, 10, 16) == substr(md5(substr($result, 26).$keyb), 0, 16)) {
-                return substr($result, 26);
+                if (!$expiry) {
+                    return substr($result, 26);
+                } else {
+                    return array(substr($result, 26),(int)(substr($result, 0, 10)));
+                }
             } else {
                 return '';
             }
