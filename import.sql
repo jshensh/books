@@ -18,7 +18,7 @@ DELIMITER $$
 --
 -- 存储过程
 --
-CREATE DEFINER=`root`@`localhost` PROCEDURE `doRollback`( IN `loanID1` INT UNSIGNED, IN `loanID2` INT UNSIGNED, IN `transactionsID1` INT UNSIGNED, IN `transactionsID2` INT UNSIGNED, IN `lowIn` DECIMAL(12,2), IN `highIn` DECIMAL(12,2), IN `closedIn` DECIMAL(12,2), IN `tIn` INT UNSIGNED, OUT `status` TINYINT(1) UNSIGNED)
+CREATE DEFINER=`root`@`localhost` PROCEDURE `doRollback`( IN `loanID1` INT UNSIGNED, IN `loanID2` INT UNSIGNED, IN `transactionsID1` INT UNSIGNED, IN `transactionsID2` INT UNSIGNED, IN `lowIn` DECIMAL(12,2), IN `highIn` DECIMAL(12,2), IN `closedIn` DECIMAL(12,2), IN `incomeIn` DECIMAL(12,2), IN `expendIn` DECIMAL(12,2), IN `tIn` INT UNSIGNED, OUT `status` TINYINT(1) UNSIGNED)
 label: begin
     DECLARE EXIT HANDLER FOR SQLEXCEPTION, SQLWARNING
         BEGIN
@@ -30,12 +30,12 @@ label: begin
         set `status`=0;
         delete from `loan` where `id` in (`loanID1`,`loanID2`);
         delete from `transactions` where `id` in (`transactionsID1`,`transactionsID2`);
-        update `statements` set `low`=`lowIn`, `high`=`highIn`, `closed`=`closedIn` where `t`=`tIn`;
+        update `statements` set `low`=`lowIn`, `high`=`highIn`, `closed`=`closedIn`, `income`=`incomeIn`, `expend`=`expendIn` where `t`=`tIn`;
         set `status`=1;
     commit;
 end$$
 
-CREATE DEFINER=`root`@`localhost` PROCEDURE `insertNew`( IN `outTransactMode` INT UNSIGNED, IN `inTransactMode` INT UNSIGNED, IN `txtIn` TEXT, IN `moneyIn` DECIMAL(12,2), IN `tIn` INT(10) UNSIGNED, IN `today` INT(10) UNSIGNED, IN `nameIn` VARCHAR(60), OUT `loanID1` INT UNSIGNED, OUT `loanID2` INT UNSIGNED, OUT `transactionsID1` INT UNSIGNED, OUT `transactionsID2` INT UNSIGNED, OUT `lowOut` DECIMAL(12,2), OUT `highOut` DECIMAL(12,2), OUT `closedOut` DECIMAL(12,2))
+CREATE DEFINER=`root`@`localhost` PROCEDURE `insertNew`( IN `outTransactMode` INT UNSIGNED, IN `inTransactMode` INT UNSIGNED, IN `txtIn` TEXT, IN `moneyIn` DECIMAL(12,2), IN `tIn` INT(10) UNSIGNED, IN `today` INT(10) UNSIGNED, IN `nameIn` VARCHAR(60), OUT `loanID1` INT UNSIGNED, OUT `loanID2` INT UNSIGNED, OUT `transactionsID1` INT UNSIGNED, OUT `transactionsID2` INT UNSIGNED, OUT `lowOut` DECIMAL(12,2), OUT `highOut` DECIMAL(12,2), OUT `closedOut` DECIMAL(12,2), OUT `incomeOut` DECIMAL(12,2), OUT `expendOut` DECIMAL(12,2))
 label: begin
     DECLARE `txt2` text;
     DECLARE `loanAction` varchar(6);
@@ -49,6 +49,7 @@ label: begin
             ROLLBACK;
         END;
 
+
     START TRANSACTION;
 
     select 0 into `loanID1`;
@@ -58,12 +59,14 @@ label: begin
     select 0 into `lowOut`;
     select 0 into `highOut`;
     select 0 into `closedOut`;
+    select 0 into `incomeOut`;
+    select 0 into `expendOut`;
     if ((select count(`id`) from `statements`)!=0) then
-        select `low`,`high`,`closed` from `statements` order by `t` desc limit 1 into `lowOut`, `highOut`, `closedOut`;
+        select `low`,`high`,`closed`,`income`,`expend` from `statements` order by `t` desc limit 1 into `lowOut`, `highOut`, `closedOut`, `incomeOut`, `expendOut`;
     end if;
     
     insert into `statements`(`t`,`low`,`high`,`closed`) SELECT `today`, `closedOut`, `closedOut` ,`closedOut` FROM dual WHERE not exists (select `id` from `statements` where `statements`.`t` = `today`);
-    select `low`,`high`,`closed` from `statements` where `t` = `today` into `lowOut`, `highOut`, `closedOut` for update;
+    select `low`,`high`,`closed`,`income`,`expend` from `statements` where `t` = `today` into `lowOut`, `highOut`, `closedOut`, `incomeOut`, `expendOut` for update;
 
     if (`moneyIn`<0) then
         set `transactModeTemp`=`outTransactMode`;
@@ -140,6 +143,7 @@ label: begin
         else
             update `statements` set `closed` = `moneyIn`+`closedOut` where `t` = `today`;
             if (`moneyIn`<0) then
+                update `statements` set `expend` = `expend`-`moneyIn` where `t` = `today`;
                 if (`moneyIn`+`closedOut`<`lowOut`) then
                     update `statements` set `low` = `moneyIn`+`closedOut` where `t` = `today`;
                 end if;
@@ -147,6 +151,7 @@ label: begin
                     set `txtIn`="支出";
                 end if;
             elseif (`moneyIn`>0) then
+                update `statements` set `income` = `income`+`moneyIn` where `t` = `today`;
                 if (`moneyIn`+`closedOut`>`highOut`) then
                     update `statements` set `high` = `moneyIn`+`closedOut` where `t` = `today`;
                 end if;
@@ -193,9 +198,11 @@ CREATE TABLE IF NOT EXISTS `loan` (
 CREATE TABLE IF NOT EXISTS `statements` (
   `id` int(10) unsigned NOT NULL,
   `t` int(10) unsigned NOT NULL,
-  `low` decimal(12,2) NOT NULL,
-  `high` decimal(12,2) NOT NULL,
-  `closed` decimal(12,2) NOT NULL
+  `low` decimal(12,2) NOT NULL default 0,
+  `high` decimal(12,2) NOT NULL default 0,
+  `closed` decimal(12,2) NOT NULL default 0,
+  `high` decimal(12,2) NOT NULL default 0,
+  `closed` decimal(12,2) NOT NULL default 0
 ) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
 
 -- --------------------------------------------------------

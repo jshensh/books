@@ -100,7 +100,6 @@
             window.onload=function() {
                 var data=<?=$data;?>;
                 var setName=<?=$setName;?>;
-                
                 var money=0;
                 var rd=<?=$rd;?>;
                 if (setName) {

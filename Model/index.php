@@ -26,11 +26,10 @@
                 $money=abs($money);
             }
         }
-        $reQuery=$dblink->prepare("CALL `insertNew`(:p0, :p1, :p2, :p3, :p4, :today, :p5, @p6, @p7, @p8, @p9, @p10, @p11, @p12);");
-        //var_dump("CALL `insertNew`('{$outTransactMode}', '{$inTransactMode}', '{$txt}', '{$money}', '".time()."', '".strtotime(date("Y-m-d"))."', '{$name}', @p6, @p7, @p8, @p9, @p10, @p11, @p12); SELECT @p6 AS `loanID1`, @p7 AS `loanID2`, @p8 AS `transactionsID1`, @p9 AS `transactionsID2`, @p10 AS `lowOut`, @p11 AS `highOut`, @p12 AS `closedOut`;");
+        $reQuery=$dblink->prepare("CALL `insertNew`(:p0, :p1, :p2, :p3, :p4, :today, :p5, @p6, @p7, @p8, @p9, @p10, @p11, @p12, @p13, @p14);");
         $reQuery->execute(array(":p0"=>$outTransactMode,":p1"=>$inTransactMode,":p2"=>$txt,":p3"=>$money,":p4"=>time(),":p5"=>$name,":today"=>strtotime(date("Y-m-d"))));
-        $re=$dblink->query("SELECT @p6 AS `loanID1`, @p7 AS `loanID2`, @p8 AS `transactionsID1`, @p9 AS `transactionsID2`, @p10 AS `lowOut`, @p11 AS `highOut`, @p12 AS `closedOut`;")->fetch(PDO::FETCH_ASSOC);
-        if ($re["loanID1"]==0 && $re["loanID2"]==0 && $re["transactionsID1"]==0 && $re["transactionsID2"]==0 && $re["lowOut"]==0 && $re["highOut"]==0 && $re["closedOut"]==0) {
+        $re=$dblink->query("SELECT @p6 AS `loanID1`, @p7 AS `loanID2`, @p8 AS `transactionsID1`, @p9 AS `transactionsID2`, @p10 AS `lowOut`, @p11 AS `highOut`, @p12 AS `closedOut`, @p13 AS `incomeOut`, @p14 AS `expendOut`;")->fetch(PDO::FETCH_ASSOC);
+        if ($re["loanID1"]==0 && $re["loanID2"]==0 && $re["transactionsID1"]==0 && $re["transactionsID2"]==0 && $re["lowOut"]==0 && $re["highOut"]==0 && $re["closedOut"]==0 && $re["incomeOut"]==0 && $re["expendOut"]==0) {
             return false;
         }
         $re["transactMode"]=$mode;
@@ -43,11 +42,12 @@
     function doRollback() {
         global $dblink;
         $rollbackID=json_decode($_SESSION["rollbackID"],1);
-        if ($rollbackID["loanID1"]===null || $rollbackID["loanID2"]===null || $rollbackID["transactionsID1"]===null || $rollbackID["transactionsID2"]===null || $rollbackID["lowOut"]===null || $rollbackID["highOut"]===null || $rollbackID["closedOut"]===null) {
+        if ($rollbackID["loanID1"]===null || $rollbackID["loanID2"]===null || $rollbackID["transactionsID1"]===null || $rollbackID["transactionsID2"]===null || $rollbackID["lowOut"]===null || $rollbackID["highOut"]===null || $rollbackID["closedOut"]===null || $rollbackID["incomeOut"]===null || $rollbackID["expendOut"]===null) {
             return false;
         }
-        $reQuery=$dblink->prepare("CALL `doRollback`(:p0, :p1, :p2, :p3, :p4, :p5, :p6, :p7, @p8);");
-        $reQuery->execute(array(":p0"=>$rollbackID["loanID1"],":p1"=>$rollbackID["loanID2"],":p2"=>$rollbackID["transactionsID1"],":p3"=>$rollbackID["transactionsID2"],":p4"=>$rollbackID["lowOut"],":p5"=>$rollbackID["highOut"],":p6"=>$rollbackID["closedOut"],":p7"=>strtotime(date("Y-m-d"))));
+        $reQuery=$dblink->prepare("CALL `doRollback`(:p0, :p1, :p2, :p3, :p4, :p5, :p6, :p9, :p10, :p7, @p8);");
+        $reQuery->execute(array(":p0"=>$rollbackID["loanID1"],":p1"=>$rollbackID["loanID2"],":p2"=>$rollbackID["transactionsID1"],":p3"=>$rollbackID["transactionsID2"],":p4"=>$rollbackID["lowOut"],":p5"=>$rollbackID["highOut"],":p6"=>$rollbackID["closedOut"],":p9"=>$rollbackID["incomeOut"],":p10"=>$rollbackID["expendOut"],":p7"=>strtotime(date("Y-m-d"))));
+        //var_dump("CALL `doRollback`('{$rollbackID["loanID1"]}', '{$rollbackID["loanID2"]}', '{$rollbackID["transactionsID1"]}', '{$rollbackID["transactionsID2"]}', '{$rollbackID["lowOut"]}', '{$rollbackID["highOut"]}', '{$rollbackID["closedOut"]}', '".strtotime(date("Y-m-d"))."', '{$rollbackID["incomeOut"]}', '{$rollbackID["expendOut"]}', @p8);");
         $re=$dblink->query("SELECT @p8 AS `status`;")->fetch(PDO::FETCH_ASSOC);
         unset($_SESSION["rollbackID"]);
         return $re["status"]==0?false:array("transactMode"=>$rollbackID["transactMode"],"txt"=>$rollbackID["txt"],"money"=>$rollbackID["money"],"name"=>$rollbackID["name"]);

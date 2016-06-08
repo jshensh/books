@@ -28,6 +28,9 @@
             $(function () {
                 var statements=<?=$statements;?>,
                     yezs=[],
+                    income=[],
+                    expend=[],
+                    expendSum=0,
                     groupingUnits = [[
                         'week',
                         [1]
@@ -47,6 +50,8 @@
                             parseFloat(lastClose), // low
                             parseFloat(lastClose) // close
                         ]);
+                        income.push([lastDate,0]);
+                        expend.push([lastDate,0]);
                     }
                     lastDate=nowDate;
                     yezs.push([
@@ -56,6 +61,9 @@
                         parseFloat(statements[i]["low"]), // low
                         parseFloat(statements[i]["closed"]) // close
                     ]);
+                    income.push([lastDate,parseFloat(statements[i]["income"])]);
+                    expend.push([lastDate,parseFloat(statements[i]["expend"])]);
+                    expendSum+=parseFloat(statements[i]["expend"]);
                     lastClose=statements[i]["closed"];
                 }
                 var todayT=new Date().getTime()-(new Date().getTime()%86400)+28800000;
@@ -73,7 +81,7 @@
                     ]);
                     lastDate+=86400000;
                 }
-                console.log(yezs);
+                console.log(yezs,expendSum);
                 $('#container').highcharts('StockChart', {
 
                     rangeSelector: {
@@ -91,7 +99,42 @@
                         title: {
                             text: '余额'
                         },
-                        lineWidth: 2
+                        lineWidth: 2,
+                        height: "59%"
+                    },{
+                        labels: {
+                            align: 'right',
+                            x: -3
+                        },
+                        title: {
+                            text: '收入'
+                        },
+                        lineWidth: 2,
+                        top: "60%",
+                        height: "19%",
+                        offset: 0,
+                        max: 5000
+                    },{
+                        labels: {
+                            align: 'right',
+                            x: -3
+                        },
+                        title: {
+                            text: '支出'
+                        },
+                        lineWidth: 2,
+                        top: "81%",
+                        height: "19%",
+                        offset: 0,
+                        plotLines : [{
+                            value : Math.round(expendSum/expend.length*100)/100,
+                            color : 'red',
+                            dashStyle : 'shortdash',
+                            width : 2,
+                            label : {
+                                text : '支出平均 '+Math.round(expendSum/expend.length*100)/100
+                            }
+                        }]
                     }],
                     plotOptions: {
                         candlestick: {
@@ -103,11 +146,25 @@
                     },  
                     series: [{
                         type: 'candlestick',
-                        name: 'RMB',
+                        name: '余额',
                         data: yezs,
                         dataGrouping: {
                             units: groupingUnits
                         }
+                    },{
+                        name: '收入',
+                        data: income,
+                        dataGrouping: {
+                            units: groupingUnits
+                        },
+                        yAxis: 1
+                    },{
+                        name: '支出',
+                        data: expend,
+                        dataGrouping: {
+                            units: groupingUnits
+                        },
+                        yAxis: 2
                     }],
                     credits: {
                         enabled: false
