@@ -10,7 +10,7 @@
         <div id="errmsg" style="display: none;"><p>无法访问指定账单，请联系您的债权人重新获取链接</p></div>
         <div id="detail" style="display: none;">
             <center>
-                <table style="text-align: center;">
+                <table style="text-align: center;" border="1">
                     <thead>
                         <tr>
                             <th rowspan="2" style="min-width: 67px;">日期</th>
@@ -29,7 +29,7 @@
                             <th>千</th>
                             <th>百</th>
                             <th>十</th>
-                            <th style="border-color: #3ACECE red">元</th>
+                            <th style="border-right-color: red">元</th>
                             <th>角</th>
                             <th>分</th>
                             <th>亿</th>
@@ -40,7 +40,7 @@
                             <th>千</th>
                             <th>百</th>
                             <th>十</th>
-                            <th style="border-color: #3ACECE red">元</th>
+                            <th style="border-right-color: red">元</th>
                             <th>角</th>
                             <th>分</th>
                             <th>&nbsp;</th>
@@ -52,7 +52,7 @@
                             <th>千</th>
                             <th>百</th>
                             <th>十</th>
-                            <th style="border-color: #3ACECE red">元</th>
+                            <th style="border-right-color: red">元</th>
                             <th>角</th>
                             <th>分</th>
                         </tr>
@@ -112,14 +112,16 @@
                         value=!isNaN(value)?(("           "+(value.toFixed(2).replace(/\./g,""))).substr(-11)).split(""):"           ".split("");
                         var re="";
                         for (var j=0;j<value.length;j++) {
-                            re+="<td"+(j==8?" style=\"border-color: #3ACECE red\"":"")+">"+value[j].replace(/ /g,"&nbsp;")+"</td>";
+                            re+="<td"+(j==8?" style=\"border-right-color: red\"":"")+">"+value[j].replace(/ /g,"&nbsp;")+"</td>";
                         }
                         return re;
-                    };  
+                    };
+                    var addBlackLine="";
                     for (var i=0;i<data.length;i++) {
                         money+=parseFloat(data[i]["money"]);
                         money=num_fix(money);
-                        document.getElementById('detailLine').innerHTML+="<tr><td>"+new Date(parseInt(data[i]["t"])*1000).Format("yyyy-MM-dd hh:mm:ss")+"</td><td>"+data[i]["txt"]+"</td>"+(parseFloat(data[i]["money"])<0?getFormatMoney(data[i]["money"],true):getFormatMoney("",false))+(parseFloat(data[i]["money"])>0?getFormatMoney(data[i]["money"],true):getFormatMoney("",false))+"<td>"+(parseFloat(data[i]["money"])>0?"贷":"借")+"</td><td>"+(parseFloat(data[i]["money"])>0?parseFloat(data[i]["money"]).toFixed(2):"<span style=\"color: red\">("+Math.abs(parseFloat(data[i]["money"])).toFixed(2)+")</span>")+"</td>"+getFormatMoney(money,false)+"</tr>";
+                        document.getElementById('detailLine').innerHTML+="<tr"+addBlackLine+"><td>"+new Date(parseInt(data[i]["t"])*1000).Format("yyyy-MM-dd hh:mm:ss")+"</td><td>"+data[i]["txt"]+"</td>"+(parseFloat(data[i]["money"])<0?getFormatMoney(data[i]["money"],true):getFormatMoney("",false))+(parseFloat(data[i]["money"])>0?getFormatMoney(data[i]["money"],true):getFormatMoney("",false))+"<td>"+(parseFloat(data[i]["money"])>0?"贷":"借")+"</td><td>"+(parseFloat(data[i]["money"])>0?parseFloat(data[i]["money"]).toFixed(2):"<span style=\"color: red\">("+Math.abs(parseFloat(data[i]["money"])).toFixed(2)+")</span>")+"</td>"+getFormatMoney(money,false)+"</tr>";
+                        addBlackLine=addBlackLine?"":(!money?" class=\"addBlackLine\"":"");
                     }
                 } else {
                     document.getElementById('errmsg').style["display"]="block";
@@ -135,10 +137,17 @@
             }
             table {
                 border-collapse: collapse;
+                border-right: none;
+                border-top: none;
             }
             th, td {
                 padding: 3px;
                 font-size: 13px;
+                border-bottom: none;
+                border-left: none;
+            }
+            .addBlackLine td {
+                border-top-color: black !important;
             }
         </style>
 <?php getFooter(); ?>
