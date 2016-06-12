@@ -8,7 +8,7 @@
     $getList=false;
     if ($_POST["delete"]=="true") {
         $insertQry=$dblink->prepare("insert into `transactions`(`transactMode`,`money`,`txt`,`t`) select 1,-`s`,concat(`name`,\"销账\"),:t from (SELECT sum(`money`) as `s`,`name` FROM `loan` group by `name`)t1 WHERE s!=0 and `name`=:name;");
-        $insertQry->execute(array(":name"=>$_GET["name"],":t"=>strtotime(date("Y-m-d"))));
+        $insertQry->execute(array(":name"=>$_GET["name"],":t"=>time()));
         $delQry=$dblink->prepare("delete from `loan` where `name`=:name;");
         $delQry->execute(array(":name"=>$_GET["name"]));
         $getList=true;
