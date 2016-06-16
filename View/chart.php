@@ -52,6 +52,11 @@
                 return sum;
             };
             $(function () {
+                Highcharts.setOptions({
+                    global: {
+                        timezoneOffset: -8*60
+                    }
+                });
                 var statements=<?=$statements;?>,
                     yezs=[],
                     income=[],
@@ -67,53 +72,44 @@
                         [1]
                     ]],
                     lastClose=0.00,
-                    lastDate=parseInt(statements[0]["t"])*1000+28800000;
-                for (var i=0; i < statements.length; i++) {
-                    var nowDate=parseInt(statements[i]["t"])*1000+28800000;
-                    for (true;lastDate<nowDate-86400000;lastDate+=86400000) {
+                    firstDate=parseInt(statements[0]["t"])*1000,
+                    lastDate=firstDate,
+                    today=new Date(),
+                    todayT=new Date(today.Format("yyyy"),today.getMonth(),today.getDate()).getTime(),
+                    datas={};
+                for (var i=0;i<statements.length;i++) {
+                    datas[parseInt(statements[i]["t"])*1000]=[lastClose,parseFloat(statements[i]["high"]),parseFloat(statements[i]["low"]),parseFloat(statements[i]["closed"]),parseFloat(statements[i]["income"]),parseFloat(statements[i]["expend"])];
+                    lastClose=parseFloat(statements[i]["closed"]);
+                }
+                for (var i=firstDate;i<=todayT;i+=86400000) {
+                    if (typeof(datas[i])!=="undefined") {
+                        lastClose=datas[i][3];
                         yezs.push([
-                            lastDate, // the date
+                            i, // the date
+                            parseFloat(datas[i][0]), // open
+                            parseFloat(datas[i][1]), // high
+                            parseFloat(datas[i][2]), // low
+                            parseFloat(datas[i][3]) // close
+                        ]);
+                        income.push([i,datas[i][4]]);
+                        expend.push([i,datas[i][5]]);
+                        incomeArr.push(datas[i][4]);
+                        expendArr.push(datas[i][5]);
+                    } else {
+                        yezs.push([
+                            i, // the date
                             parseFloat(lastClose), // open
                             parseFloat(lastClose), // high
                             parseFloat(lastClose), // low
                             parseFloat(lastClose) // close
                         ]);
-                        income.push([lastDate,0]);
-                        expend.push([lastDate,0]);
+                        income.push([i,0]);
+                        expend.push([i,0]);
                         incomeArr.push(0);
                         expendArr.push(0);
                     }
-                    lastDate=nowDate;
-                    yezs.push([
-                        nowDate, // the date
-                        parseFloat(lastClose), // open
-                        parseFloat(statements[i]["high"]), // high
-                        parseFloat(statements[i]["low"]), // low
-                        parseFloat(statements[i]["closed"]) // close
-                    ]);
-                    income.push([lastDate,parseFloat(statements[i]["income"])]);
-                    expend.push([lastDate,parseFloat(statements[i]["expend"])]);
-                    incomeArr.push(parseFloat(statements[i]["income"]));
-                    expendArr.push(parseFloat(statements[i]["expend"]));
-                    expendSum+=parseFloat(statements[i]["expend"]);
-                    lastClose=statements[i]["closed"];
                 }
-                var todayT=new Date().getTime()-(new Date().getTime()%86400)+28800000;
-                lastDate+=86400000;
-                while (true) {
-                    if (lastDate>=todayT) {
-                        break;
-                    }
-                    yezs.push([
-                        lastDate, // the date
-                        parseFloat(lastClose), // open
-                        parseFloat(lastClose), // high
-                        parseFloat(lastClose), // low
-                        parseFloat(lastClose) // close
-                    ]);
-                    lastDate+=86400000;
-                }
-                console.log(yezs,expendSum);
+                console.log(yezs[0],income[0],expend[0]);
                 $('#container').highcharts('StockChart', {
 
                     rangeSelector: {
@@ -159,12 +155,12 @@
                         height: "24%",
                         offset: 0,
                         plotLines : [{
-                            value : Math.round(expendSum/expend.length*100)/100,
+                            value : Math.round(expendArr.sum()/expend.length*100)/100,
                             color : 'red',
                             dashStyle : 'shortdash',
                             width : 2,
                             label : {
-                                text : '支出平均 '+Math.round(expendSum/expend.length*100)/100
+                                text : '支出平均 '+Math.round(expendArr.sum()/expend.length*100)/100
                             }
                         }]
                     }],
