@@ -201,8 +201,8 @@ CREATE TABLE IF NOT EXISTS `statements` (
   `low` decimal(12,2) NOT NULL default 0,
   `high` decimal(12,2) NOT NULL default 0,
   `closed` decimal(12,2) NOT NULL default 0,
-  `high` decimal(12,2) NOT NULL default 0,
-  `closed` decimal(12,2) NOT NULL default 0
+  `income` decimal(12,2) NOT NULL default 0,
+  `expend` decimal(12,2) NOT NULL default 0
 ) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
 
 -- --------------------------------------------------------
