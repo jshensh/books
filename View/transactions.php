@@ -43,7 +43,7 @@
                 var totalM=0;
                 for (var i=0;i<transactions.length;i++) {
                     document.getElementById('list').innerHTML+="<li>"+(new Date(parseInt(transactions[i]["t"])*1000).Format("yyyy-MM-dd hh:mm:ss"))+(transactions[i]["txt"]!=="支出" && transactions[i]["txt"]!=="收入"?" 因 "+transactions[i]["txt"]:"")+" "+(parseFloat(transactions[i]["money"])<0?"支出":"收入")+" "+Math.abs(parseFloat(transactions[i]["money"])).toFixed(2)+" 元"+(mode==0?"("+transactMode[transactions[i]["transactMode"]]+")":"")+"</li>";
-                    var matchV=transactions[i]["txt"].match("^(.*?)(充值|提现)$");
+                    var matchV=transactions[i]["txt"].match("^(.*?)(充值|提现|借款|还款|销账)$");
                     totalM+=(matchV && transactMode.indexOf(matchV[1]))?0:parseFloat(transactions[i]["money"]);
                 }
                 document.getElementById('total').innerHTML=(totalM>0?"收入":(totalM<0?"支出":""))+" "+Math.abs(totalM).toFixed(2)+" 元";

@@ -109,9 +109,7 @@
                         expendArr.push(0);
                     }
                 }
-                console.log(yezs[0],income[0],expend[0]);
                 $('#container').highcharts('StockChart', {
-
                     rangeSelector: {
                         selected: 1
                     },
