@@ -147,7 +147,7 @@
                 border-left: none;
             }
             .addBlackLine td {
-                border-top-color: black !important;
+                border-top-color: red !important;
             }
         </style>
 <?php getFooter(); ?>
