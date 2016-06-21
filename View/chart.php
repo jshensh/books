@@ -13,11 +13,11 @@
                 height: 98%;
             }
             #container {
-                height: calc(100% - 84px);
+                height: calc(100% - 94px);
                 min-width: 310px;
             }
             #result {
-                height: 86px;
+                height: 94px;
             }
         </style>
 
@@ -109,13 +109,13 @@
                         expendArr.push(0);
                     }
                 }
-                console.log(yezs[0],income[0],expend[0]);
                 $('#container').highcharts('StockChart', {
-
+                    tooltip: {
+                        crosshairs:  [true, true]
+                    },
                     rangeSelector: {
                         selected: 1
                     },
-
                     title: {
                         text: '余额变化走势'
                     },
@@ -216,7 +216,7 @@
                     var incomeSum=Math.round(incomeArr.sum(min,max)*100)/100;
                     var expendSum=Math.round(expendArr.sum(min,max)*100)/100;
                     var allSum=Math.round((incomeSum-expendSum)*100)/100;
-                    $("#result").html('<p style="margin: 0;">'+new Date(yezs[min][0]).Format("yyyy-MM-dd")+" 至 "+new Date(yezs[max][0]).Format("yyyy-MM-dd")+"<br />收入 "+incomeSum.toFixed(2)+ " 元，平均 "+(incomeSum/(max-min+1)).toFixed(2)+" 元<br />支出 "+expendSum.toFixed(2)+ " 元，平均 "+(expendSum/(max-min+1)).toFixed(2)+" 元<br />共计 "+allSum.toFixed(2)+" 元，平均 "+(allSum/(max-min+1)).toFixed(2)+" 元</p>");
+                    $("#result").html('<p style="margin: 0;">'+new Date(yezs[min][0]).Format("yyyy-MM-dd")+" 至 "+new Date(yezs[max][0]).Format("yyyy-MM-dd")+"<br />收入 "+incomeSum.toFixed(2)+ " 元，平均 "+(incomeSum/(max-min+1)).toFixed(2)+" 元<br />支出 "+expendSum.toFixed(2)+ " 元，平均 "+(expendSum/(max-min+1)).toFixed(2)+" 元<br />共计 "+allSum.toFixed(2)+" 元，平均 "+(allSum/(max-min+1)).toFixed(2)+" 元<br />时段内：开 "+yezs[min][1].toFixed(2)+" 元，收 "+yezs[max][4].toFixed(2)+" 元</p>");
 
                     /*console.log(yezs[min][1],yezs[max][4],
                         new Date(yezs[min][0]).Format("yyyy-MM-dd"),
