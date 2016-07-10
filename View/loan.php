@@ -14,6 +14,7 @@
                         <tr>
                             <th rowspan="2" style="min-width: 67px;">日期</th>
                             <th rowspan="2">摘要</th>
+                            <th rowspan="2">交易方式</th>
                             <th colspan="11">借方</th>
                             <th colspan="11">贷方</th>
                             <th rowspan="2">借或贷</th>
@@ -135,7 +136,7 @@
                     for (var i=0;i<data.length;i++) {
                         money+=parseFloat(data[i]["money"]);
                         money=num_fix(money);
-                        document.getElementById('detailLine').innerHTML+="<tr"+addBlackLine+"><td>"+new Date(parseInt(data[i]["t"])*1000).Format("yyyy-MM-dd hh:mm:ss")+"</td><td>"+data[i]["txt"]+"</td>"+(parseFloat(data[i]["money"])<0?getFormatMoney(data[i]["money"],true):getFormatMoney("",false))+(parseFloat(data[i]["money"])>0?getFormatMoney(data[i]["money"],true):getFormatMoney("",false))+"<td>"+(parseFloat(data[i]["money"])>0?"贷":"借")+"</td><td>"+(parseFloat(data[i]["money"])>0?parseFloat(data[i]["money"]).toFixed(2):"<span style=\"color: red\">("+Math.abs(parseFloat(data[i]["money"])).toFixed(2)+")</span>")+"</td>"+getFormatMoney(money,false)+"</tr>";
+                        document.getElementById('detailLine').innerHTML+="<tr"+addBlackLine+"><td>"+new Date(parseInt(data[i]["t"])*1000).Format("yyyy-MM-dd hh:mm:ss")+"</td><td>"+data[i]["txt"]+"</td><td>"+data[i]["name"]+"</td>"+(parseFloat(data[i]["money"])<0?getFormatMoney(data[i]["money"],true):getFormatMoney("",false))+(parseFloat(data[i]["money"])>0?getFormatMoney(data[i]["money"],true):getFormatMoney("",false))+"<td>"+(parseFloat(data[i]["money"])>0?"贷":"借")+"</td><td>"+(parseFloat(data[i]["money"])>0?parseFloat(data[i]["money"]).toFixed(2):"<span style=\"color: red\">("+Math.abs(parseFloat(data[i]["money"])).toFixed(2)+")</span>")+"</td>"+getFormatMoney(money,false)+"</tr>";
                         addBlackLine=addBlackLine?"":(!money?" class=\"addBlackLine\"":"");
                     }
                 } else {
