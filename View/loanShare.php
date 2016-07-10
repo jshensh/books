@@ -117,17 +117,50 @@
                         }
                         return re;
                     };
-                    var addBlackLine="";
+                    var addBlackLine="",accountCount=0,accountCount2=0;
+                    document.getElementById('detailLine').innerHTML='<tr style="cursor: pointer;" maxAccount=0 id="account_'+accountCount+'" onclick="showHiddenAccount(this);"><td colspan="38">已折叠 <span id="account_'+accountCount+'_startTime">'+new Date(parseInt(data[0]["t"])*1000).Format("yyyy-MM-dd hh:mm:ss")+'</span> 至 <span id="account_'+accountCount+'_endTime"></span> 的账目，点击本行展开</td></tr>';
                     for (var i=0;i<data.length;i++) {
                         money+=parseFloat(data[i]["money"]);
                         money=num_fix(money);
-                        document.getElementById('detailLine').innerHTML+="<tr"+addBlackLine+"><td>"+new Date(parseInt(data[i]["t"])*1000).Format("yyyy-MM-dd hh:mm:ss")+"</td><td>"+data[i]["txt"]+"</td><td>"+data[i]["name"]+"</td>"+(parseFloat(data[i]["money"])<0?getFormatMoney(data[i]["money"],true):getFormatMoney("",false))+(parseFloat(data[i]["money"])>0?getFormatMoney(data[i]["money"],true):getFormatMoney("",false))+"<td>"+(parseFloat(data[i]["money"])>0?"贷":"借")+"</td><td>"+(parseFloat(data[i]["money"])>0?parseFloat(data[i]["money"]).toFixed(2):"<span style=\"color: red\">("+Math.abs(parseFloat(data[i]["money"])).toFixed(2)+")</span>")+"</td>"+getFormatMoney(money,false)+"</tr>";
-                        addBlackLine=addBlackLine?"":(!money?" class=\"addBlackLine\"":"");
+                        document.getElementById('detailLine').innerHTML+="<tr"+addBlackLine+" id=\"account_"+accountCount+"_"+accountCount2+"\"><td>"+new Date(parseInt(data[i]["t"])*1000).Format("yyyy-MM-dd hh:mm:ss")+"</td><td>"+data[i]["txt"]+"</td><td>"+data[i]["name"]+"</td>"+(parseFloat(data[i]["money"])<0?getFormatMoney(data[i]["money"],true):getFormatMoney("",false))+(parseFloat(data[i]["money"])>0?getFormatMoney(data[i]["money"],true):getFormatMoney("",false))+"<td>"+(parseFloat(data[i]["money"])>0?"贷":"借")+"</td><td>"+(parseFloat(data[i]["money"])>0?parseFloat(data[i]["money"]).toFixed(2):"<span style=\"color: red\">("+Math.abs(parseFloat(data[i]["money"])).toFixed(2)+")</span>")+"</td>"+getFormatMoney(money,false)+"</tr>";
+                        accountCount2++;
+                        addBlackLine=addBlackLine && "";
+                        if (!money) {
+                            document.getElementById('account_'+accountCount+'_endTime').innerHTML=new Date(parseInt(data[i]["t"])*1000).Format("yyyy-MM-dd hh:mm:ss");
+                            document.getElementById('account_'+accountCount).setAttribute("maxAccount",accountCount2);
+                            accountCount2=0;
+                            accountCount++;
+                            document.getElementById('detailLine').innerHTML+='<tr class="addBlackLine" style="cursor: pointer;" maxAccount=0 id="account_'+accountCount+'" onclick="showHiddenAccount(this);"><td colspan="38">已折叠 <span id="account_'+accountCount+'_startTime">'+new Date(parseInt(data[i+1]["t"])*1000).Format("yyyy-MM-dd hh:mm:ss")+'</span> 至 <span id="account_'+accountCount+'_endTime"></span> 的账目，点击本行展开</td></tr>';
+                            addBlackLine=" class=\"addBlackLine\"";
+                        }
+                    }
+                    document.getElementById('detailLine').innerHTML+="</span>";
+                    for (var i=accountCount;i>accountCount-2;i--) {
+                        document.getElementById('account_'+i).remove();
+                    }
+                    for (var i=0;i<=accountCount-2;i++) {
+                        var j=parseInt(document.getElementById("account_"+i).getAttribute("maxAccount"));
+                        for (var k=0;k<j;k++) {
+                            document.getElementById("account_"+i+"_"+k).style["display"]="none";
+                        }
                     }
                 } else {
-                    document.getElementById('errmsg').style["display"]="block";
+                    document.getElementById('allList').style["display"]="block";
+                    var toHtml="<ol>";
+                    for (var i=0;i<data.length;i++) {
+                        toHtml+="<li><a href=\"?name="+encodeURIComponent(data[i]["name"])+"\">"+new Date(parseInt(data[i]["minT"])*1000).Format("yyyy-MM-dd hh:mm:ss")+" 起共"+(parseFloat(data[i]["all"])>0?"从":"向")+" "+data[i]["name"]+" "+(parseFloat(data[i]["all"])>0?"贷入":"借出")+" "+Math.abs(parseFloat(data[i]["all"])).toFixed(2)+" 元</a></li>";
+                        money+=parseFloat(data[i]["all"]);
+                    }
+                    document.getElementById('allList').innerHTML=toHtml+"<p>共计 "+money.toFixed(2)+" 元</p></ol>";
                 }
-            }
+            };
+            var showHiddenAccount=function(ele) {
+                var j=parseInt(ele.getAttribute("maxAccount"));
+                for (var k=0;k<j;k++) {
+                    document.getElementById(ele.getAttribute("id")+"_"+k).style["display"]="table-row";
+                }
+                ele.remove();
+            };
         </script>
         <style>
             table, th, td {
