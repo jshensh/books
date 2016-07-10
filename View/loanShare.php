@@ -145,13 +145,7 @@
                         }
                     }
                 } else {
-                    document.getElementById('allList').style["display"]="block";
-                    var toHtml="<ol>";
-                    for (var i=0;i<data.length;i++) {
-                        toHtml+="<li><a href=\"?name="+encodeURIComponent(data[i]["name"])+"\">"+new Date(parseInt(data[i]["minT"])*1000).Format("yyyy-MM-dd hh:mm:ss")+" 起共"+(parseFloat(data[i]["all"])>0?"从":"向")+" "+data[i]["name"]+" "+(parseFloat(data[i]["all"])>0?"贷入":"借出")+" "+Math.abs(parseFloat(data[i]["all"])).toFixed(2)+" 元</a></li>";
-                        money+=parseFloat(data[i]["all"]);
-                    }
-                    document.getElementById('allList').innerHTML=toHtml+"<p>共计 "+money.toFixed(2)+" 元</p></ol>";
+                    document.getElementById('errmsg').style["display"]="block";
                 }
             };
             var showHiddenAccount=function(ele) {
