@@ -15,11 +15,11 @@
     } elseif ($_POST["shareTime"]) {
         if (is_numeric($_POST["shareTime"]) && $_POST["shareTime"]>0) {
             $token=urlencode(ucAuthCode($_GET["name"],"ENCODE",$key,$_POST["shareTime"]*60));
-            $shortLink=json_decode(curl_get_contents("http://api.t.sina.com.cn/short_url/shorten.json?source=3213676317&url_long=".urlencode("{$_POST['path']}loanShare?token={$token}")),1);
+            $shortLink=json_decode(curl_get_contents("http://api.weibo.com/2/short_url/shorten.json?source=2849184197&url_long=".urlencode("{$_POST['path']}loanShare?token={$token}")),1);
             if (!$shortLink) {
                 echo json_stringify(array("status"=>"error"));
             } else {
-                echo json_stringify(array("status"=>"success","link"=>$shortLink[0]["url_short"]));
+                echo json_stringify(array("status"=>"success","link"=>$shortLink['urls'][0]["url_short"]));
             }
         } else {
             echo json_stringify(array("status"=>"error"));
@@ -27,7 +27,7 @@
         exit();
     } else {
         if ($_GET["name"]) {
-            $op=$dblink->prepare("select `loan`.`id`,`loan`.`name`,`transactMode`.`name`,`loan`.`money`,`loan`.`txt`,`loan`.`t` from `loan`,`transactMode` where `loan`.`name`=:name and `transactMode`.`id`=`loan`.`transactMode` order by `loan`.`t`;");
+            $op=$dblink->prepare("select `loan`.`id`,`loan`.`name`,`transactMode`.`name`,`loan`.`money`,`loan`.`txt`,`loan`.`t` from `loan`,`transactMode` where `loan`.`name`=:name and `transactMode`.`id`=`loan`.`transactMode` order by `loan`.`t`, `loan`.`id`;");
             $op->execute(array(":name"=>$_GET["name"]));
             $dataTmp=$op->fetchAll(PDO::FETCH_ASSOC);
             if (count($dataTmp)===0) {

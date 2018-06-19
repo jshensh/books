@@ -14,11 +14,13 @@
                         <tr>
                             <th rowspan="2" style="min-width: 67px;">日期</th>
                             <th rowspan="2">摘要</th>
-                            <th rowspan="2">交易方式</th>
+                            <th rowspan="2" style="min-width: 27px;">交易方式</th>
                             <th colspan="11">借方</th>
                             <th colspan="11">贷方</th>
                             <th rowspan="2">借或贷</th>
                             <th colspan="12">余额</th>
+                            <th rowspan="2">积数 / <br />(元·日)</th>
+                            <th rowspan="2">积数计算结果</th>
                         </tr>
                         <tr>
                             <th>亿</th>
@@ -61,7 +63,7 @@
 
                     </tbody>
                 </table>
-                <p><a href="####" onclick="doDelete();">销账</a>&nbsp;&nbsp;&nbsp;<a href="####" onclick="getShareLink();">分享账单给债务人</a></p>
+                <p><a href="####" onclick="doDelete();">销账</a>&nbsp;&nbsp;&nbsp;<a href="####" onclick="getShareLink();">分享账单给债务人</a><span id="interestSpan">&nbsp;&nbsp;&nbsp;<a href="####" onclick="interest();">结息</a></span></p>
                 <form action="" method="post" id="del">
                     <input type="hidden" name="delete" value="true" />
                 </form>
@@ -70,6 +72,9 @@
 
         <script src="http://cdn.hcharts.cn/jquery/jquery-1.8.3.min.js"></script>
         <script>
+            var data=<?=$data;?>;
+            var setName=<?=$setName;?>;
+            var sumMoney=0;
             Date.prototype.Format = function(fmt) {
                 var o = {
                     "M+" : this.getMonth()+1,
@@ -86,6 +91,13 @@
                     if(new RegExp("("+ k +")").test(fmt))
                         fmt = fmt.replace(RegExp.$1, (RegExp.$1.length==1) ? (o[k]) : (("00"+ o[k]).substr((""+ o[k]).length)));
                 return fmt;
+            };
+            Array.prototype.sum = function() {
+                var re=0;
+                for (var i=0;i<this.length;i++) {
+                    re+=~~this[i];
+                }
+                return re;
             };
             function num_fix(num) {
                 return parseFloat(parseFloat(String(num).replace(/[^\d\-\.]/g,"")).toFixed(2));
@@ -117,56 +129,110 @@
                     }
                 });
             };
+            var strtotime=function(datetime) { 
+                var tmp_datetime = datetime.replace(/:/g,'-');
+                tmp_datetime = tmp_datetime.replace(/ /g,'-');
+                var arr = tmp_datetime.split("-");
+                var now = new Date(Date.UTC(arr[0],arr[1]-1,arr[2],arr[3]-8,arr[4],arr[5]));
+                return now.getTime();
+            }
             window.onload=function() {
-                var data=<?=$data;?>;
-                var setName=<?=$setName;?>;
-                var money=0;
                 if (setName) {
-                    document.getElementById('detail').style["display"]="block";
-                    var getFormatMoney=function(value,needAbs) {
-                        value=needAbs?Math.abs(parseFloat(value)):parseFloat(value);
-                        value=!isNaN(value)?(("           "+(value.toFixed(2).replace(/\./g,""))).substr(-11)).split(""):"           ".split("");
-                        var re="";
-                        for (var j=0;j<value.length;j++) {
-                            re+="<td"+(j==8?" style=\"border-right-color: red\"":"")+">"+value[j].replace(/ /g,"&nbsp;")+"</td>";
+                    document.getElementById('detail').style["display"] = "block";
+                    var getFormatMoney = function(value, needAbs) {
+                        value = needAbs ? Math.abs(parseFloat(value)) : parseFloat(value);
+                        value = !isNaN(value) ? (("           "+(value.toFixed(2).replace(/\./g,""))).substr(-11)).split("") : "           ".split("");
+                        var re = "";
+                        for (var j = 0; j < value.length; j++) {
+                            re += "<td" + (j == 8 ? " style=\"border-right-color: red\"" : "") + ">" + value[j].replace(/ /g,"&nbsp;") + "</td>";
                         }
                         return re;
                     };
-                    var addBlackLine="",accountCount=0,accountCount2=0;
-                    document.getElementById('detailLine').innerHTML='<tr style="cursor: pointer;" maxAccount=0 id="account_'+accountCount+'" onclick="showHiddenAccount(this);"><td colspan="38">已折叠 <span id="account_'+accountCount+'_startTime">'+new Date(parseInt(data[0]["t"])*1000).Format("yyyy-MM-dd hh:mm:ss")+'</span> 至 <span id="account_'+accountCount+'_endTime"></span> 的账目，点击本行展开</td></tr>';
-                    for (var i=0;i<data.length;i++) {
-                        money+=parseFloat(data[i]["money"]);
-                        money=num_fix(money);
-                        document.getElementById('detailLine').innerHTML+="<tr"+addBlackLine+" id=\"account_"+accountCount+"_"+accountCount2+"\"><td>"+new Date(parseInt(data[i]["t"])*1000).Format("yyyy-MM-dd hh:mm:ss")+"</td><td>"+data[i]["txt"]+"</td><td>"+data[i]["name"]+"</td>"+(parseFloat(data[i]["money"])<0?getFormatMoney(data[i]["money"],true):getFormatMoney("",false))+(parseFloat(data[i]["money"])>0?getFormatMoney(data[i]["money"],true):getFormatMoney("",false))+"<td>"+(parseFloat(data[i]["money"])>0?"贷":"借")+"</td><td>"+(parseFloat(data[i]["money"])>0?parseFloat(data[i]["money"]).toFixed(2):"<span style=\"color: red\">("+Math.abs(parseFloat(data[i]["money"])).toFixed(2)+")</span>")+"</td>"+getFormatMoney(money,false)+"</tr>";
-                        accountCount2++;
-                        addBlackLine=addBlackLine && "";
-                        if (!money) {
-                            document.getElementById('account_'+accountCount+'_endTime').innerHTML=new Date(parseInt(data[i]["t"])*1000).Format("yyyy-MM-dd hh:mm:ss");
-                            document.getElementById('account_'+accountCount).setAttribute("maxAccount",accountCount2);
-                            accountCount2=0;
-                            accountCount++;
-                            document.getElementById('detailLine').innerHTML+='<tr class="addBlackLine" style="cursor: pointer;" maxAccount=0 id="account_'+accountCount+'" onclick="showHiddenAccount(this);"><td colspan="38">已折叠 <span id="account_'+accountCount+'_startTime">'+new Date(parseInt(data[i+1]["t"])*1000).Format("yyyy-MM-dd hh:mm:ss")+'</span> 至 <span id="account_'+accountCount+'_endTime"></span> 的账目，点击本行展开</td></tr>';
-                            addBlackLine=" class=\"addBlackLine\"";
+
+                    var groupedData = [[]];
+                    for (var i = 0; i < data.length; i++) {
+                        sumMoney += parseFloat(data[i]["money"]);
+                        sumMoney = num_fix(sumMoney);
+
+                        groupedData[groupedData.length ? groupedData.length - 1 : 0].push({
+                            'id':       i,
+                            'name':     data[i]['name'],
+                            'money':    data[i]['money'],
+                            'txt':      data[i]['txt'],
+                            't':        data[i]['t'],
+                            'sumMoney': sumMoney,
+                            'name':     data[i]['name']
+                        });
+
+                        if (!sumMoney && i !== data.length - 1) {
+                            groupedData.push([]);
                         }
                     }
-                    document.getElementById('detailLine').innerHTML+="</span>";
-                    for (var i=accountCount;i>accountCount-2;i--) {
-                        document.getElementById('account_'+i).remove();
-                    }
-                    for (var i=0;i<=accountCount-2;i++) {
-                        var j=parseInt(document.getElementById("account_"+i).getAttribute("maxAccount"));
-                        for (var k=0;k<j;k++) {
-                            document.getElementById("account_"+i+"_"+k).style["display"]="none";
+
+                    var detailTrTemplate = "<tr{{__addRedLine__}} id=\"account_{{__detailGroupNo__}}_{{__detailLineNo__}}\"{{__isShow__}}>\n\
+    <td>{{__formattedTime__}}</td>\n\
+    <td>{{__txt__}}</td>\n\
+    <td>{{__name__}}</td>\n\
+    {{__formattedDebit__}}\n\
+    {{__formattedCredit__}}\n\
+    <td>{{__side__}}</td>\n\
+    <td>{{__formattedDrCrMoney__}}</td>\n\
+    {{__formattedSumMoney__}}\n\
+    <td>{{__jishuFormula__}}</td>\n\
+    <td>{{__jishuResult__}}</td>\n\
+</tr>";
+                    
+                    var detailLineData = '';
+
+                    for (var i = 0; i < groupedData.length; i++) {
+                        var isShow = (i > groupedData.length - 3);
+
+                        if (!isShow) {
+                            detailLineData += '<tr ' + (i !== 0 ? ' class="addRedLine"' : '') + ' style="cursor: pointer;" maxAccount=' + groupedData[i].length + ' id="account_' + i + '" onclick="showHiddenAccount(this);"><td colspan="40">已折叠 ' + new Date(parseInt(groupedData[i][0]["t"]) * 1000).Format("yyyy-MM-dd hh:mm:ss") + ' 至 ' + new Date(parseInt(groupedData[i][groupedData[i].length - 1]["t"]) * 1000).Format("yyyy-MM-dd hh:mm:ss") + ' 的账目，点击本行展开</td></tr>';
+                        }
+
+                        for (var j = 0; j < groupedData[i].length; j++) {
+                            if (!(i === 0 && j === 0)) {
+                                var jishu = ~~num_fix(sumMoney - parseFloat(groupedData[i][j]["money"])),
+                                jishuDay = ~~(~~groupedData[i][j]["t"] / 86400) - ~~(~~data[groupedData[i][j]['id'] - 1]["t"] / 86400);
+                            }
+
+                            var formattedTime = new Date(~~groupedData[i][j]["t"] * 1000).Format("yyyy-MM-dd hh:mm:ss"),
+                                formattedDebit = (parseFloat(groupedData[i][j]["money"]) < 0 ? getFormatMoney(groupedData[i][j]["money"], true) : getFormatMoney("", false)),
+                                formattedCredit = (parseFloat(groupedData[i][j]["money"]) > 0 ? getFormatMoney(groupedData[i][j]["money"], true) : getFormatMoney("", false)),
+                                side = (parseFloat(groupedData[i][j]["money"]) > 0 ? "贷" : "借"),
+                                formattedDrCrMoney = (parseFloat(groupedData[i][j]["money"]) > 0 ? parseFloat(groupedData[i][j]["money"]).toFixed(2) : "<span style=\"color: red\">(" + Math.abs(parseFloat(groupedData[i][j]["money"])).toFixed(2) + ")</span>"),
+                                formattedSumMoney = getFormatMoney(groupedData[i][j]["sumMoney"], false),
+                                jishuFormula = (!jishu ? "/" : (jishu + " × " + jishuDay)),
+                                jishuResult = (!jishu ? "/" : num_fix(jishu * jishuDay));
+
+                            detailLineData += detailTrTemplate
+                                .replace(/\{\{__addRedLine__\}\}/g, (i !== 0 && j === 0) ? ' class="addRedLine"' : '')
+                                .replace(/\{\{__isShow__\}\}/g, !isShow ? ' style="display: none;"' : '')
+                                .replace(/\{\{__detailGroupNo__\}\}/g, i)
+                                .replace(/\{\{__detailLineNo__\}\}/g, j)
+                                .replace(/\{\{__formattedTime__\}\}/g, formattedTime)
+                                .replace(/\{\{__txt__\}\}/g, groupedData[i][j]["txt"])
+                                .replace(/\{\{__name__\}\}/g, groupedData[i][j]["name"])
+                                .replace(/\{\{__formattedDebit__\}\}/g, formattedDebit)
+                                .replace(/\{\{__formattedCredit__\}\}/g, formattedCredit)
+                                .replace(/\{\{__formattedDrCrMoney__\}\}/g, formattedDrCrMoney)
+                                .replace(/\{\{__side__\}\}/g, side)
+                                .replace(/\{\{__formattedSumMoney__\}\}/g, formattedSumMoney)
+                                .replace(/\{\{__jishuFormula__\}\}/g, jishuFormula)
+                                .replace(/\{\{__jishuResult__\}\}/g, jishuResult);
                         }
                     }
+
+                    document.getElementById('detailLine').innerHTML = detailLineData;
                 } else {
-                    document.getElementById('allList').style["display"]="block";
-                    var toHtml="<ol>";
-                    for (var i=0;i<data.length;i++) {
-                        toHtml+="<li><a href=\"?name="+encodeURIComponent(data[i]["name"])+"\">"+new Date(parseInt(data[i]["minT"])*1000).Format("yyyy-MM-dd hh:mm:ss")+" 起共"+(parseFloat(data[i]["all"])>0?"从":"向")+" "+data[i]["name"]+" "+(parseFloat(data[i]["all"])>0?"贷入":"借出")+" "+Math.abs(parseFloat(data[i]["all"])).toFixed(2)+" 元</a></li>";
-                        money+=parseFloat(data[i]["all"]);
+                    document.getElementById('allList').style["display"] = "block";
+                    var toHtml = "<ol>";
+                    for (var i = 0; i < data.length; i++) {
+                        toHtml += "<li><a href=\"?name=" + encodeURIComponent(data[i]["name"]) + "\">" + new Date(parseInt(data[i]["minT"]) * 1000).Format("yyyy-MM-dd hh:mm:ss") + " 起共"+(parseFloat(data[i]["all"]) > 0 ? "从" : "向") + " " + data[i]["name"] + " " + (parseFloat(data[i]["all"]) > 0 ? "贷入" : "借出") + " " + Math.abs(parseFloat(data[i]["all"])).toFixed(2) + " 元</a></li>";
+                        sumMoney += parseFloat(data[i]["all"]);
                     }
-                    document.getElementById('allList').innerHTML=toHtml+"<p>共计 "+money.toFixed(2)+" 元</p></ol>";
+                    document.getElementById('allList').innerHTML = toHtml + "<p>共计 " + sumMoney.toFixed(2) + " 元</p></ol>";
                 }
             };
             var showHiddenAccount=function(ele) {
@@ -176,6 +242,26 @@
                 }
                 ele.remove();
             };
+            var interest=function() {
+                var rate=parseFloat(prompt("请输入年利率（5.2%=0.052）","0.052")),date=prompt("请输入起始结算日期",new Date().Format("yyyy-MM-dd"));
+                var startDom=$("#detailLine tr td:contains('"+date+"'):first");
+                if (!rate || !startDom.length) {
+                    return false;
+                }
+                var firstChargeNumber=~~startDom.parent().find("td:eq(39)").html();
+                var chargeNumber=firstChargeNumber?[firstChargeNumber]:[],doms=startDom.parent().nextAll().find("td:eq(39)");
+                for (var i=0;i<doms.length;i++) {
+                    if (~~doms[i].innerHTML) {
+                        chargeNumber.push(~~doms[i].innerHTML);
+                    }
+                }
+                var lastDay=~~(~~(new Date().getTime()/1000/86400)-~~(data[data.length-1]["t"]/86400))*~~money;
+                if (lastDay) {
+                    chargeNumber.push(lastDay);
+                }
+                $("#detailLine").append($('<tr><td colspan="40" style="text-align: right; word-break: break-all;">自 '+date+' 起共计息 ('+chargeNumber.join("+")+')*'+rate+'/365='+(~~(chargeNumber.sum()*rate/365*100)/100)+' 元</td></tr>'));
+                $("#interestSpan").remove();
+            }
         </script>
         <style>
             table, th, td {
@@ -195,7 +281,7 @@
                 border-bottom: none;
                 border-left: none;
             }
-            .addBlackLine td {
+            .addRedLine td {
                 border-top-color: red !important;
             }
         </style>

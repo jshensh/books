@@ -10,6 +10,7 @@
 
     switch ($command) {
         case 'loanShare':
+        case 'loanApi':
             require("Model/{$command}.php");
             require("View/{$command}.php");
             exit();
