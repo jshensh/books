@@ -255,7 +255,7 @@
                         chargeNumber.push(~~doms[i].innerHTML);
                     }
                 }
-                var lastDay=~~(~~(new Date().getTime()/1000/86400)-~~(data[data.length-1]["t"]/86400))*~~money;
+                var lastDay=~~(~~(new Date().getTime()/1000/86400)-~~(data[data.length-1]["t"]/86400))*~~sumMoney;
                 if (lastDay) {
                     chargeNumber.push(lastDay);
                 }
