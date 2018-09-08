@@ -5,9 +5,9 @@
 因为是小项目，程序没有使用任何 PHP 框架，而前端唯一使用到的只有 highstock 以及 highstock 依赖的 jQuery。
 手机上用得比较多，懒得写 UI，各位好心人可以帮忙加上。。。
 
-作者博客 [http://233.imjs.work/](http://233.imjs.work/)
+作者博客 [http://futa.ooo/](http://futa.ooo/)
 
-###安装
+### 安装
 导入 import.sql，修改 config.php
 
     $dbhost=""; //服务器
@@ -28,9 +28,9 @@
         }
     }
 
-###添加交易方式
+### 添加交易方式
 需要在数据库手动添加
-![screenshot2](http://233.imjs.work/wp-content/uploads/2016/07/QQ截图20160711012709.jpg)
+![screenshot2](http://futa.ooo/uploads/2016/07/QQ截图20160711012709.jpg)
 
-###截图
-![screenshot1](http://233.imjs.work/wp-content/uploads/2016/07/20160711012241.png)
+### 截图
+![screenshot1](http://futa.ooo/uploads/2016/07/20160711012241.png)

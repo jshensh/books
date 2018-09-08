@@ -11,10 +11,10 @@
     function getRandChar($length){
         $str = null;
         $strPol = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789abcdefghijklmnopqrstuvwxyz";
-        $max = strlen($strPol)-1;
+        $max = strlen($strPol) - 1;
  
-        for($i=0;$i<$length;$i++){
-            $str.=$strPol[rand(0,$max)];//rand($min,$max)生成介于min和max两个数之间的一个随机整数
+        for($i = 0; $i < $length; $i++) {
+            $str .= $strPol[rand(0,$max)]; //rand($min,$max)生成介于min和max两个数之间的一个随机整数
         }
  
         return $str;
@@ -73,20 +73,20 @@
         }
     }
 
-    function checkLogin($password="") {
-        global $loginPassword,$key,$expiry;
+    function checkLogin($password = "") {
+        global $loginPassword, $key, $expiry;
         if ($_COOKIE["token"]) {
-            if (ucAuthCode($_COOKIE["token"],"DECODE",$key)===$loginPassword) {
+            if (ucAuthCode($_COOKIE["token"], "DECODE", $key) === $loginPassword) {
                 return true;
             }
         }
-        if ($password===$loginPassword) {
-            return ucAuthCode($password,"ENCODE",$key,$expiry);
+        if ($password === $loginPassword) {
+            return ucAuthCode($password, "ENCODE", $key, $expiry);
         }
         return false;
     }
 
-    function curl_get_contents($url,$timeout=5,$method='get',$post_fields=array(),$reRequest=3,$referer="") { //封装 curl
+    function curl_get_contents($url, $timeout = 5, $method = 'get', $post_fields = array(), $reRequest = 3, $referer = "") { //封装 curl
         $ch = curl_init();
         curl_setopt($ch, CURLOPT_URL, $url);
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
@@ -95,28 +95,28 @@
         curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, FALSE );
         curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false );
         curl_setopt($ch, CURLOPT_REFERER, $referer);
-        if (strpos($method,'post')>-1) {
+        if (strpos($method,'post') > -1) {
             curl_setopt($ch, CURLOPT_POST, true);
             curl_setopt($ch, CURLOPT_POSTFIELDS,$post_fields);
         }
-        if (strpos($method,'WithHeader')>-1) {
+        if (strpos($method,'WithHeader') > -1) {
             curl_setopt($ch, CURLOPT_HEADER, true);
             curl_setopt($ch, CURLOPT_NOBODY, false);
         }
         $output = curl_exec($ch);
-        if (curl_errno($ch)==0) {
-            if (strpos($method,'WithHeader')>-1) {
+        if (curl_errno($ch) == 0) {
+            if (strpos($method,'WithHeader') > -1) {
                 $headerSize = curl_getinfo($ch, CURLINFO_HEADER_SIZE);
                 $header = substr($output, 0, $headerSize);
                 $body = substr($output, $headerSize);
-                return array($header,$body,$output);
+                return array($header, $body, $output);
             } else {
                 return $output;
             }
         } else {
             if ($reRequest) {
                 $reRequest--;
-                return curl_get_contents($url,$timeout,$method,$post_fields,$reRequest);
+                return curl_get_contents($url, $timeout, $method, $post_fields, $reRequest);
             } else {
                 return false;
             }

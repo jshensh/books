@@ -5,9 +5,9 @@
     }
 
     if ($_POST["password"]) {
-        $token=checkLogin($_POST["password"]);
+        $token = checkLogin($_POST["password"]);
         if ($token) {
-            setcookie("token",$token, time()+$expiry);
+            setcookie("token", $token, time() + $expiry);
             header("Location: index");
             exit();
         }
