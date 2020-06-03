@@ -5,3 +5,8 @@
 thinkphp
 .env
 .DS_Store
+config/database.php
+extend
+runtime
+.user.ini
+CHANGELOG.md
