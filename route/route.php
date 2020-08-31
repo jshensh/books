@@ -9,11 +9,13 @@
 // | Author: liu21st <liu21st@gmail.com>
 // +----------------------------------------------------------------------
 
-Route::get('think', function () {
-    return 'hello,ThinkPHP5!';
-});
+use think\facade\Route;
 
-Route::get('hello/:name', 'index/hello');
+Route::rule('', '/index');
+
+Route::group('', function(){
+    Route::rule('index', 'index/index/index');
+})->middleware('Auth');
 
 return [
 
