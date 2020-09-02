@@ -13,12 +13,16 @@
 
 ### 旧版本升级
 
+1. 数据库中执行
+
 ```sql
 rename table `transactMode` to `transactmode`
 ALTER TABLE `transactmode` CHANGE `sortId` `sortid` INT(10) UNSIGNED NOT NULL DEFAULT '0';
 ALTER TABLE `transactmode` CHANGE `topUp` `topup` TINYINT(1) NOT NULL;
 ALTER TABLE `transactions` ADD `amount` DECIMAL(12,2) NOT NULL DEFAULT '0' AFTER `t`;
 ```
+
+2. bash 下执行
 
 ```shell
 php think UpdateAmount
