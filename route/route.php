@@ -17,6 +17,8 @@ Route::group('', function(){
     Route::rule('index', 'index/index/index');
 })->middleware('Auth');
 
+Route::rule('login', 'login/index/index');
+
 return [
 
 ];
