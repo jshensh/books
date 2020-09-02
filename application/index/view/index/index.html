@@ -61,17 +61,17 @@
         };
         var updateTransactModeList = function(list) {
             var dom = {};
-            dom["pay"] = [], dom["sk"] = [], dom["topUp"] = [], dom["withdrawal"] = [];
+            dom["pay"] = [], dom["sk"] = [], dom["topup"] = [], dom["withdrawal"] = [];
             for (var i in list) {
                 if (typeof list[i] === "object") {
-                    list[i]["topUp"] === 1 && list[i]["id"] !== 1 && dom["topUp"].push([list[i]["id"], i]);
+                    list[i]["topup"] === 1 && list[i]["id"] !== 1 && dom["topup"].push([list[i]["id"], i]);
                     list[i]["withdrawal"] === 1 && list[i]["id"] !== 1 && dom["withdrawal"].push([list[i]["id"], i]);
                     list[i]["sk"] === 1 && dom["sk"].push([list[i]["id"], i]);
                     list[i]["pay"] === 1 && dom["pay"].push([list[i]["id"], i]);
                 }
             }
-            optGroup = {"pay": "支出", "sk": "收入", "topUp": "充值", "withdrawal": "提现"};
-            opgValue = {"pay": "#tt1_0", "sk": "0_#tt1", "topUp": "1_#tt1", "withdrawal": "#tt1_1"};
+            optGroup = {"pay": "支出", "sk": "收入", "topup": "充值", "withdrawal": "提现"};
+            opgValue = {"pay": "#tt1_0", "sk": "0_#tt1", "topup": "1_#tt1", "withdrawal": "#tt1_1"};
             for (var transactionType in dom) {
                 var tmpOptGroup = newDom("optgroup", null, optGroup[transactionType]);
                 for (var id in dom[transactionType]) {
