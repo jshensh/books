@@ -27,8 +27,8 @@ php think UpdateAmount
 ### 添加交易方式
 
 需要在数据库手动添加
-![screenshot2](http://futa.ooo/uploads/2016/07/QQ截图20160711012709.jpg)
+![screenshot2](http://233.imjs.work/uploads/2016/07/QQ截图20160711012709.jpg)
 
 ### 截图
 
-![screenshot1](http://futa.ooo/uploads/2016/07/20160711012241.png)
+![screenshot1](http://233.imjs.work/uploads/2016/07/20160711012241.png)
