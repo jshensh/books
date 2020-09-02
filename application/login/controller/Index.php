@@ -25,7 +25,7 @@ class Index extends Controller
             }
             $isLoginFailed = true;
         }
-        
+
         $this->assign('isLoginFailed', $isLoginFailed);
         return $this->fetch();
     }
