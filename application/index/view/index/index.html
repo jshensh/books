@@ -104,24 +104,20 @@
                 }
             }
             setInterval(updateTime, 1000);
-            var postStatus = data['postStatus'];
-            var rollbackStatus = data['rollbackStatus'];
-            if (rollbackStatus !== null) {
-                document.getElementById('msg').innerHTML = "撤销" + (rollbackStatus ? "成功" : "失败");
+            var msg = data['msg'];
+            var rollbackData = data['rollbackData'];
+            if (msg) {
+                document.getElementById('msg').innerHTML = msg;
                 document.getElementById('msg').style["display"] = "block";
-                if (rollbackStatus) {
-                    document.getElementById('transactMode').value = rollbackStatus["transactMode"];
-                    if (rollbackStatus["name"]) {
-                        document.getElementById('name').value = rollbackStatus["name"];
-                        document.getElementById('loan').click();
-                    }
-                    document.getElementById('money').value = Math.abs(parseFloat(rollbackStatus["money"]));
-                    document.getElementById('txt').value = rollbackStatus["txt"];
-                }
             }
-            if (postStatus > -1) {
-                document.getElementById('msg').innerHTML = "插入" + (postStatus ? "成功&nbsp;<a href=\"?rollback=true\">撤销</a>" : "失败");
-                document.getElementById('msg').style["display"] = "block";
+            if (rollbackData) {
+                document.getElementById('transactMode').value = rollbackData["transactMode"];
+                if (rollbackData["name"]) {
+                    document.getElementById('name').value = rollbackData["name"];
+                    document.getElementById('loan').click();
+                }
+                document.getElementById('money').value = Math.abs(parseFloat(rollbackData["money"]));
+                document.getElementById('txt').value = rollbackData["txt"];
             }
             var amount = data['transactModeList'];
             var loanSum = data['loanSum'];
