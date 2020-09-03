@@ -214,9 +214,6 @@ class Index extends Controller
             Db::commit();
             return $insertIds;
         } catch (\Exception $e) {
-            echo '<pre>';
-            var_dump($e, 1);
-            echo '</pre>';
             // 回滚事务
             Db::rollback();
         }
