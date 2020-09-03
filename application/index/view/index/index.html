@@ -84,7 +84,7 @@
             updateTime();
             var data = {:json_encode($data, JSON_UNESCAPED_UNICODE)};
             updateTransactModeList(data['transactModeList']);
-            document.getElementById('transactMode').onchange=function() {
+            document.getElementById('transactMode').onchange = function() {
                 var opg = this.value.match(/^(\d+_1|1_\d+)$/) && this.value !== "1_0" && this.value !== "0_1";
                 document.getElementById('txtP').style["display"] = opg ? "none" : "block";
                 document.getElementById('loanP').style["display"] = opg ? "none" : "block";
@@ -105,19 +105,23 @@
             }
             setInterval(updateTime, 1000);
             var msg = data['msg'];
-            var rollbackData = data['rollbackData'];
+            var originPostData = data['originPostData'];
             if (msg) {
                 document.getElementById('msg').innerHTML = msg;
                 document.getElementById('msg').style["display"] = "block";
             }
-            if (rollbackData) {
-                document.getElementById('transactMode').value = rollbackData["transactMode"];
-                if (rollbackData["name"]) {
-                    document.getElementById('name').value = rollbackData["name"];
+            if (originPostData) {
+                document.getElementById('transactMode').value = originPostData["transactMode"];
+                var opg = originPostData["transactMode"].match(/^(\d+_1|1_\d+)$/) && originPostData["transactMode"] !== "1_0" && originPostData["transactMode"] !== "0_1";
+                document.getElementById('txtP').style["display"] = opg ? "none" : "block";
+                document.getElementById('loanP').style["display"] = opg ? "none" : "block";
+                document.getElementById('nameP').style["display"] = opg ? "none" : (document.getElementById('loan').checked && "block");
+                if (originPostData["name"]) {
+                    document.getElementById('name').value = originPostData["name"];
                     document.getElementById('loan').click();
                 }
-                document.getElementById('money').value = Math.abs(parseFloat(rollbackData["money"]));
-                document.getElementById('txt').value = rollbackData["txt"];
+                document.getElementById('money').value = Math.abs(parseFloat(originPostData["money"]));
+                document.getElementById('txt').value = originPostData["txt"];
             }
             var amount = data['transactModeList'];
             var loanSum = data['loanSum'];

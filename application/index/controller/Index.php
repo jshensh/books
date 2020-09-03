@@ -18,6 +18,7 @@ class Index extends Controller
         $money = (float)$money;
         $inTransactMode = (int)$inTransactMode;
         $outTransactMode = (int)$outTransactMode;
+        $t = time();
 
         if ($money === 0.00) {
             return false;
@@ -42,9 +43,9 @@ class Index extends Controller
              * 若有数据，并且最后一条数据不是今天插入的，则使用最后一条数值作为今日数据插入
              */
             if (isset($lastday)) {
-                if ($lastday->t !== date("Y-m-d")) {
+                if ($lastday->t !== date("Y-m-d", $t)) {
                     (new Statements)->save([
-                        't'      => date("Y-m-d"),
+                        't'      => date("Y-m-d", $t),
                         'low'    => $lastday->low,
                         'high'   => $lastday->high,
                         'closed' => $lastday->closed,
@@ -54,7 +55,7 @@ class Index extends Controller
                 }
             } else {
                 (new Statements)->save([
-                    't'      => date("Y-m-d"),
+                    't'      => date("Y-m-d", $t),
                     'low'    => 0,
                     'high'   => 0,
                     'closed' => 0,
@@ -64,10 +65,18 @@ class Index extends Controller
             }
 
             // 重新获取今日统计，并上锁，为后续更新数据做准备，当发现仍没有数据时则报错
-            $todayStatement = Statements::where('t', strtotime(date("Y-m-d")))->lock(true)->find();
+            $todayStatement = Statements::where('t', strtotime(date("Y-m-d", $t)))->lock(true)->find();
             if (!$todayStatement) {
                 throw \Exception();
             }
+
+            $originTodayStatementData = [
+                'low'    => $todayStatement->low,
+                'high'   => $todayStatement->high,
+                'closed' => $todayStatement->closed,
+                'income' => $todayStatement->income,
+                'expend' => $todayStatement->expend,
+            ];
 
             if ($money < 0) {
                 $tmpTransactMode = $outTransactMode;
@@ -111,7 +120,7 @@ class Index extends Controller
                             'transactmode_id' => $tmpTransactMode,
                             'money'           => -$hisLoanSum,
                             'txt'             => $txtForLoan,
-                            't'               => time()
+                            't'               => $t
                         ]);
                         $insertIds['loan'][] = $loan1->id;
 
@@ -128,7 +137,7 @@ class Index extends Controller
                                 $hisLoanSum,
                                 2
                             ),
-                            't'               => time()
+                            't'               => $t
                         ]);
                         $insertIds['transactions'][] = $transactions1->id;
 
@@ -146,7 +155,7 @@ class Index extends Controller
                     'transactmode_id' => $tmpTransactMode,
                     'money'           => $money,
                     'txt'             => $txtForLoan,
-                    't'               => time()
+                    't'               => $t
                 ]);
                 $insertIds['loan'][] = $loan2->id;
             } else {
@@ -168,7 +177,7 @@ class Index extends Controller
                             $money,
                             2
                         ),
-                        't'               => time()
+                        't'               => $t
                     ]);
                     $insertIds['transactions'][] = $transactions1->id;
 
@@ -206,13 +215,13 @@ class Index extends Controller
                     $money,
                     2
                 ),
-                't'               => time()
+                't'               => $t
             ]);
             $insertIds['transactions'][] = $transactions2->id;
 
             // 提交事务
             Db::commit();
-            return $insertIds;
+            return ['insertIds' => $insertIds, 'originTodayStatementData' => $originTodayStatementData, 't' => $t];
         } catch (\Exception $e) {
             // 回滚事务
             Db::rollback();
@@ -241,9 +250,28 @@ class Index extends Controller
         return $this->doInsertNew($inTransactMode, $outTransactMode, $txt, $money, $name);
     }
 
+    private function doRollback($data)
+    {
+        Db::startTrans();
+        try {
+            Loan::where('id', 'in', $data['insertIds']['loan'])->delete();
+            Transactions::where('id', 'in', $data['insertIds']['transactions'])->delete();
+            Statements::where('t', '=', $data['t'])->update($data['originTodayStatementData']);
+
+            // 提交事务
+            Db::commit();
+            return true;
+        } catch (\Exception $e) {
+            // 回滚事务
+            Db::rollback();
+        }
+        return false;
+    }
+
     public function index(Request $request)
     {
         $msg = null;
+        $originPostData = null;
 
         if ($request->isPost()) {
             $params = $request->post();
@@ -252,12 +280,24 @@ class Index extends Controller
             if (true !== $result) {
                 $msg = "数据错误，{$result}";
             } else {
-                $insertIds = $this->insertNew($params["transactMode"], $params["txt"], $params["money"], $params["name"]);
-                if ($insertIds) {
-                    Session::set('rollback', json_encode($insertIds));
-                    $msg = '插入成功，撤销';
+                $insertResult = $this->insertNew($params["transactMode"], $params["txt"], $params["money"], $params["name"]);
+                if ($insertResult) {
+                    $insertResult['postData'] = $params;
+                    Session::set('rollback', json_encode($insertResult));
+                    $msg = '插入成功 <a href="?rollback=true">撤销</a>';
                 } else {
                     $msg = '插入失败';
+                }
+            }
+        } else {
+            if ($request->get("rollback")) {
+                $data = json_decode(Session::get('rollback'), 1);
+                if ($data && $this->doRollback($data)) {
+                    $msg = '撤销成功';
+                    Session::delete('rollback');
+                    $originPostData = $data['postData'];
+                } else {
+                    $msg = '撤销失败';
                 }
             }
         }
@@ -282,7 +322,7 @@ class Index extends Controller
             'loanSum'          => Loan::sum('money'),
             'todayTotal'       => (float)$todayClosed === 0.00 ? 0 : ($todayClosed - $lastdayClosed),
             'msg'              => $msg,
-            // 'rollbackData'     => ,
+            'originPostData'   => $originPostData,
         ]);
         return $this->fetch();
     }
