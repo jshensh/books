@@ -50,6 +50,14 @@ class Index extends Controller
                 'transactmode_id' => 1,
                 'money'           => -$sum,
                 'txt'             => "{$name}销账",
+                'amount'          => bcsub(
+                    Transactions::order('id', 'desc') // 未锁表，暂未解决并发问题
+                        ->where('transactmode_id', '=', 1)
+                        ->limit(1)
+                        ->value('amount', 0.00),
+                    $sum,
+                    2
+                ),
                 't'               => time(),
             ]);
             Loan::where('loan.name', '=', $name)->delete();
