@@ -207,7 +207,7 @@
                             formattedSumMoney = getFormatMoney(groupedData[i][j]["sumMoney"], false),
                             jishuFormula = (!jishu ? "/" : (jishu + " × " + jishuDay)),
                             jishuResult = (!jishu ? "/" : num_fix(jishu * jishuDay));
-                        console.log(groupedData[i][j]);
+                        
                         detailLineData += detailTrTemplate
                             .replace(/\{\{__addRedLine__\}\}/g, (i !== 0 && j === 0) ? ' class="addRedLine"' : '')
                             .replace(/\{\{__isShow__\}\}/g, !isShow ? ' style="display: none;"' : '')

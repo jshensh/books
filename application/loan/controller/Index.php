@@ -35,9 +35,22 @@ class Index extends Controller
         return $this->fetch();
     }
 
-    public function detail($name = '')
+    public function detail($name = '', Request $request)
     {
         if (!$name) {
+            return redirect('/loan');
+        }
+
+        if ($request->post('delete') === 'true') {
+            $sum = Loan::where('loan.name', '=', $name)->sum('money');
+            $transactions = new Transactions;
+            $transactions->save([
+                'transactmode_id' => 1,
+                'money'           => -$sum,
+                'txt'             => "{$name}销账",
+                't'               => time(),
+            ]);
+            Loan::where('loan.name', '=', $name)->delete();
             return redirect('/loan');
         }
 
