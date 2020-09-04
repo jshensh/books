@@ -8,7 +8,7 @@
 
 ### 安装
 
-1. 修改 ``/config/system.php`` 中的管理员密码
+1. 修改 ``/config/system.php``
 2. 修改 ``/config/database.php`` 中的数据库连接信息
 
 ### 旧版本升级

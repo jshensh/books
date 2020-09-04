@@ -1,5 +1,5 @@
 <?php
 return [
-    'admin_pass'    => 'admin',
-    'loanshare_key' => 'flk;sdjfksdfjksdjfksdfj'
+    'admin_pass'    => 'admin', // 管理员密码
+    'loanshare_key' => 'flk;sdjfksdfjksdjfksdfj' // 加密 Key
 ];

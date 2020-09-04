@@ -22,6 +22,7 @@ Route::group('', function(){
 })->middleware('Auth');
 
 Route::rule('login', 'login/index/index');
+Route::rule('loanShare/:token', 'loan/share/index')->pattern(['token' => '.+']);
 
 return [
 
