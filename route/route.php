@@ -15,6 +15,7 @@ Route::rule('', '/index');
 
 Route::group('', function(){
     Route::rule('index', 'index/index/index');
+    Route::rule('chart', 'index/chart/index');
 })->middleware('Auth');
 
 Route::rule('login', 'login/index/index');
