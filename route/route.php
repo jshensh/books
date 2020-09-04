@@ -14,9 +14,11 @@ use think\facade\Route;
 Route::rule('', '/index');
 
 Route::group('', function(){
-    Route::rule('index', 'index/index/index');
-    Route::rule('chart', 'index/chart/index');
-    Route::rule('transactions', 'index/transactions/index');
+    Route::rule('index$', 'index/index/index');
+    Route::rule('chart$', 'index/chart/index');
+    Route::rule('transactions$', 'index/transactions/index');
+    Route::rule('loan/detail/:name$', 'loan/index/detail');
+    Route::rule('loan$', 'loan/index/index');
 })->middleware('Auth');
 
 Route::rule('login', 'login/index/index');

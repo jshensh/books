@@ -1,9 +1,9 @@
 <?php
-namespace app\index\model;
+namespace app\loan\model;
 
 use think\Model;
 
-class Loan extends Model
+class Transactions extends Model
 {
     // protected $pk = 'k';
     public function getTAttr($value)

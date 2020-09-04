@@ -19,7 +19,7 @@
 rename table `transactMode` to `transactmode`
 ALTER TABLE `transactmode` CHANGE `sortId` `sortid` INT(10) UNSIGNED NOT NULL DEFAULT '0';
 ALTER TABLE `transactmode` CHANGE `topUp` `topup` TINYINT(1) NOT NULL;
-ALTER TABLE `transactions` ADD `amount` DECIMAL(12,2) NOT NULL DEFAULT '0' AFTER `t`;
+ALTER TABLE `transactions` ADD `amount` DECIMAL(12,2) NOT NULL DEFAULT '0' AFTER `txt`;
 ALTER TABLE `loan` CHANGE `transactMode` `transactmode_id` INT(10) UNSIGNED NOT NULL;
 ```
 
