@@ -256,7 +256,7 @@ class Index extends Controller
         try {
             Loan::where('id', 'in', $data['insertIds']['loan'])->delete();
             Transactions::where('id', 'in', $data['insertIds']['transactions'])->delete();
-            Statements::where('t', '=', $data['t'])->update($data['originTodayStatementData']);
+            Statements::where('t', '=', strtotime(date('Y-m-d', $data['t'])))->update($data['originTodayStatementData']);
 
             // 提交事务
             Db::commit();
