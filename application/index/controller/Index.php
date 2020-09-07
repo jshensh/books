@@ -49,8 +49,8 @@ class Index extends Controller
                         'low'    => $lastday->low,
                         'high'   => $lastday->high,
                         'closed' => $lastday->closed,
-                        'income' => $lastday->income,
-                        'expend' => $lastday->expend,
+                        'income' => 0,
+                        'expend' => 0,
                     ]);
                 }
             } else {
