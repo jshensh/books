@@ -129,8 +129,8 @@
             var balanceTmp = [];
             var allBalance = 0;
             for (var i in amount) {
-                balanceTmp.push("<tr><td style=\"text-align: right\">" + amount[i]["name"] + "余额：</td><td><a href=\"transactions?transactMode=" + amount[i]["id"] + "\" target=\"_blank\">" + parseFloat(amount[i]["amount"]).toFixed(2) + "</a></td></tr>");
-                allBalance += parseFloat(amount[i]["amount"]);
+                balanceTmp.push("<tr><td style=\"text-align: right\">" + amount[i]["name"] + "余额：</td><td><a href=\"transactions?transactMode=" + amount[i]["id"] + "\" target=\"_blank\">" + parseFloat(amount[i]["amount"] || 0).toFixed(2) + "</a></td></tr>");
+                allBalance += parseFloat(amount[i]["amount"] || 0);
             };
             balanceTmp.push("<tr><td style=\"text-align: right\">总计：</td><td><a href=\"transactions\" target=\"_blank\">" + parseFloat(allBalance).toFixed(2) + "</a></td></tr>");
             balanceTmp.push("<tr><td style=\"text-align: right\">借款：</td><td><a href=\"loan\" target=\"_blank\">" + parseFloat(loanSum).toFixed(2) + "</a></td></tr>");
