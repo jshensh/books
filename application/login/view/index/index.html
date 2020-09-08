@@ -15,7 +15,7 @@
 {block name="javascript"}
     <script>
         window.onload=function() {
-            if ({$isLoginFailed}) {
+            if ({:json_encode($isLoginFailed)}) {
                 document.getElementById('msg').style["display"]="block";
             }
         };
