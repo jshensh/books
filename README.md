@@ -22,6 +22,7 @@ ALTER TABLE `transactmode` CHANGE `topUp` `topup` TINYINT(1) NOT NULL;
 ALTER TABLE `transactions` ADD `amount` DECIMAL(12,2) NOT NULL DEFAULT '0' AFTER `txt`;
 ALTER TABLE `transactions` CHANGE `transactMode` `transactmode_id` INT(10) UNSIGNED NOT NULL;
 ALTER TABLE `loan` CHANGE `transactMode` `transactmode_id` INT(10) UNSIGNED NOT NULL;
+ALTER TABLE `transactmode` ADD `is_shown` TINYINT UNSIGNED NOT NULL DEFAULT '1' AFTER `sortid`;
 ```
 
 2. bash 下执行
