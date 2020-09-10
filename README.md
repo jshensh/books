@@ -12,7 +12,7 @@
 2. 修改 ``/config/database.php`` 中的数据库连接信息
 3. 导入 ``import.sql``
 4. bash 下执行 ``composer install && chown -R www:www .``
-5. 【可选】进行第一步操作时可保存 md5 等 Hash 算法的计算结果，编辑 [https://github.com/jshensh/books/blob/master/application/common/service/Auth.php#L21](/application/common/service/Auth.php)，修改为 ``if (md5($pass) === $configPass) {``，避免明文方式存储密码
+5. 【可选】进行第一步操作时可保存 md5 等 Hash 算法的计算结果，编辑 [/application/common/service/Auth.php](https://github.com/jshensh/books/blob/master/application/common/service/Auth.php#L21)，修改为 ``if (md5($pass) === $configPass) {``，避免明文方式存储密码
 
 ### 旧版本升级
 
