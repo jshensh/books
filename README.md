@@ -11,6 +11,12 @@
 1. 修改 ``/config/system.php``
 2. 修改 ``/config/database.php`` 中的数据库连接信息
 3. 导入 ``import.sql``
+4. bash 下执行
+
+```shell
+composer install
+chown -R www:www .
+```
 
 ### 旧版本升级
 
