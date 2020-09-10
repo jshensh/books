@@ -46,8 +46,8 @@ class Index extends Controller
                 if ($lastday->t !== date("Y-m-d", $t)) {
                     (new Statements)->save([
                         't'      => date("Y-m-d", $t),
-                        'low'    => $lastday->low,
-                        'high'   => $lastday->high,
+                        'low'    => $lastday->closed,
+                        'high'   => $lastday->closed,
                         'closed' => $lastday->closed,
                         'income' => 0,
                         'expend' => 0,
