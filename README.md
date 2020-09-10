@@ -39,3 +39,7 @@ php think UpdateAmount
 ### 截图
 
 ![screenshot1](http://233.imjs.work/uploads/2016/07/20160711012241.png)
+
+### 数据统一原则
+
+首页总计金额 - 首页借款金额 = 图表最后一天 Close 金额
