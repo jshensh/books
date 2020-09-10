@@ -10,5 +10,6 @@
 // +----------------------------------------------------------------------
 
 return [
-    'app\common\command\UpdateAmount'
+    'app\common\command\UpdateAmount',
+    'app\common\command\Check'
 ];

@@ -33,7 +33,7 @@ class UpdateAmount extends Command
             }
         });
         $output->writeln('Done!');
-        sort($amount);
+        // sort($amount);
         $output->writeln(var_export($amount, 1));
         $output->writeln(var_export(Transactions::group('transactmode_id')->field(['transactmode_id'])->column('count(id) as c', 'transactmode_id'), 1));
     }
