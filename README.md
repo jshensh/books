@@ -12,6 +12,7 @@
 2. 修改 ``/config/database.php`` 中的数据库连接信息
 3. 导入 ``import.sql``
 4. bash 下执行 ``composer install && chown -R www:www .``
+5. 【可选】进行第一步操作时可保存 md5 等 Hash 算法的计算结果，编辑 [https://github.com/jshensh/books/blob/master/application/common/service/Auth.php#L21](/application/common/service/Auth.php)，修改为 ``if (md5($pass) === $configPass) {``，避免明文方式存储密码
 
 ### 旧版本升级
 
@@ -36,11 +37,11 @@ php think UpdateAmount
 ### 添加交易方式
 
 需要在数据库手动添加
-![screenshot2](http://233.imjs.work/uploads/2016/07/QQ截图20160711012709.jpg)
+![screenshot2](https://233.imjs.work/uploads/2020/09/QQ%E6%88%AA%E5%9B%BE20200910220448.png)
 
 ### 截图
 
-![screenshot1](http://233.imjs.work/uploads/2016/07/20160711012241.png)
+![screenshot1](https://233.imjs.work/uploads/2016/07/20160711012241.png)
 
 ### 数据统一原则
 
