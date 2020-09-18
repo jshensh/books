@@ -184,20 +184,20 @@ class Index extends Controller
                     $txt = $inTransactMode === 1 ? '提现' : $txt;
                 } else {
                     // 只有发生实际的支出 / 收入操作时才操作统计数据
-                    $todayStatement->closed = bcadd($todayStatement->closed, $money, 2);
                     if ($money < 0) {
                         $todayStatement->expend = bcsub($todayStatement->expend, $money, 2);
-                        if ((float)bcadd($originTodayStatementData['closed'], $money, 2) < $todayStatement->low) {
-                            $todayStatement->low = bcadd($originTodayStatementData['closed'], $money, 2);
+                        if ((float)bcadd($todayStatement->closed, $money, 2) < $todayStatement->low) {
+                            $todayStatement->low = bcadd($todayStatement->closed, $money, 2);
                         }
                         $txt = $txt ? $txt : '支出';
                     } else if ($money > 0) {
                         $todayStatement->income = bcadd($todayStatement->income, $money, 2);
-                        if ((float)bcadd($originTodayStatementData['closed'], $money, 2) > $todayStatement->high) {
-                            $todayStatement->high = bcadd($originTodayStatementData['closed'], $money, 2);
+                        if ((float)bcadd($todayStatement->closed, $money, 2) > $todayStatement->high) {
+                            $todayStatement->high = bcadd($todayStatement->closed, $money, 2);
                         }
                         $txt = $txt ? $txt : '收入';
                     }
+                    $todayStatement->closed = bcadd($todayStatement->closed, $money, 2);
                     $todayStatement->save();
                 }
             }
