@@ -37,7 +37,7 @@ php think UpdateAmount
 ### 添加交易方式
 
 需要在数据库手动添加
-![screenshot2](https://github.com/jshensh/jshensh.github.io/blob/master/uploads/2020/09/QQ%E6%88%AA%E5%9B%BE20200910220448.png?raw=true)
+![screenshot2](https://233.imjs.work/uploads/2020/09/QQ%E6%88%AA%E5%9B%BE20200910220448.png)
 
 ### 截图
 

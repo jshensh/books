@@ -187,14 +187,14 @@ class Index extends Controller
                     $todayStatement->closed = bcadd($todayStatement->closed, $money, 2);
                     if ($money < 0) {
                         $todayStatement->expend = bcsub($todayStatement->expend, $money, 2);
-                        if ((float)bcadd($todayStatement->closed, $money, 2) < $todayStatement->low) {
-                            $todayStatement->low = bcadd($todayStatement->closed, $money, 2);
+                        if ((float)bcadd($originTodayStatementData['closed'], $money, 2) < $todayStatement->low) {
+                            $todayStatement->low = bcadd($originTodayStatementData['closed'], $money, 2);
                         }
                         $txt = $txt ? $txt : '支出';
                     } else if ($money > 0) {
                         $todayStatement->income = bcadd($todayStatement->income, $money, 2);
-                        if ((float)bcadd($todayStatement->closed, $money, 2) > $todayStatement->high) {
-                            $todayStatement->high = bcadd($todayStatement->closed, $money, 2);
+                        if ((float)bcadd($originTodayStatementData['closed'], $money, 2) > $todayStatement->high) {
+                            $todayStatement->high = bcadd($originTodayStatementData['closed'], $money, 2);
                         }
                         $txt = $txt ? $txt : '收入';
                     }
