@@ -34,6 +34,32 @@ ALTER TABLE `transactmode` ADD `is_shown` TINYINT UNSIGNED NOT NULL DEFAULT '1' 
 php think UpdateAmount
 ```
 
+### 使用命令行记账
+
+```shell
+// 未发生借贷关系的
+php think Insert 1 0 测试 100
+
+// 发生借贷关系的
+php think Insert 1 0 测试 100 --loan="测试"
+```
+
+具体用法
+
+```
+Usage:
+  Insert [options] [--] <outTransactMode> <inTransactMode> <txt> <money>
+
+Arguments:
+  outTransactMode       支出款项交易方式 ID，纯收入账目请填写 0
+  inTransactMode        收入款项交易方式 ID，纯支出账目请填写 0
+  txt                   交易备注
+  money                 交易金额
+
+Options:
+      --loan[=LOAN]     借/贷款人姓名
+```
+
 ### 添加交易方式
 
 需要在数据库手动添加
