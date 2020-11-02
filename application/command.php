@@ -11,5 +11,6 @@
 
 return [
     'app\common\command\UpdateAmount',
-    'app\common\command\Check'
+    'app\common\command\Check',
+    'app\common\command\Insert',
 ];

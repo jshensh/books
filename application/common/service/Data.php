@@ -230,7 +230,16 @@ class Data
     {
         list($outTransactMode, $inTransactMode) = explode("_", $mode);
 
-        if (!($outTransactMode >= 0 && is_numeric($outTransactMode) && $inTransactMode >= 0 && is_numeric($inTransactMode) && $outTransactMode + $inTransactMode>0)) {
+        foreach ([$outTransactMode, $inTransactMode] as $value) {
+            if (
+                !is_numeric($value) ||
+                ((int)$value !== 0 && !Transactmode::where('id', '=', $value)->value('id'))
+            ) {
+                return false;
+            }
+        }
+
+        if ($outTransactMode + $inTransactMode <= 0 || $outTransactMode === $inTransactMode) {
             return false;
         }
 
