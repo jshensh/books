@@ -37,10 +37,10 @@ php think UpdateAmount
 ### 使用命令行记账
 
 ```shell
-// 未发生借贷关系的
+# 未发生借贷关系的
 php think Insert 1 0 测试 100
 
-// 发生借贷关系的
+# 发生借贷关系的
 php think Insert 1 0 测试 100 --loan="测试"
 ```
 
