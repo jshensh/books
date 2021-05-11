@@ -79,7 +79,7 @@ class Index extends Controller
 
         $data = Loan::with('transactmode')
                     ->where('loan.name', '=', $name)
-                    ->order('loan.t')
+                    ->order('loan.id')
                     ->select();
 
         if (!$data) {
