@@ -95,7 +95,24 @@
 {block name="javascript"}
         <script src="https://cdn.hcharts.cn/jquery/jquery-1.8.3.min.js"></script>
         <script>
-            var data = {:json_encode($data, JSON_UNESCAPED_UNICODE)};
+           var data = {:json_encode($data, JSON_UNESCAPED_UNICODE)}, sumMoney = 0.00;
+           Date.prototype.Format = function(fmt) {
+                var o = {
+                    "M+" : this.getMonth()+1,
+                    "d+" : this.getDate(),
+                    "h+" : this.getHours(),
+                    "m+" : this.getMinutes(),
+                    "s+" : this.getSeconds(),
+                    "q+" : Math.floor((this.getMonth()+3)/3),
+                    "S"  : this.getMilliseconds()
+                };
+                if(/(y+)/.test(fmt))
+                    fmt=fmt.replace(RegExp.$1, (this.getFullYear()+"").substr(4 - RegExp.$1.length));
+                for(var k in o)
+                    if(new RegExp("("+ k +")").test(fmt))
+                        fmt = fmt.replace(RegExp.$1, (RegExp.$1.length==1) ? (o[k]) : (("00"+ o[k]).substr((""+ o[k]).length)));
+                return fmt;
+            };
             Array.prototype.sum = function() {
                 var re=0;
                 for (var i=0;i<this.length;i++) {
@@ -194,8 +211,8 @@
 
                     for (var j = 0; j < groupedData[i].length; j++) {
                         if (!(i === 0 && j === 0)) {
-                            var jishu = ~~num_fix(sumMoney - parseFloat(groupedData[i][j]["money"])),
-                            jishuDay = ~~(~~groupedData[i][j]["t"] / 86400) - ~~(~~data[groupedData[i][j]['id'] - 1]["t"] / 86400);
+                            var jishu = ~~num_fix(parseFloat(groupedData[i][j]["sumMoney"]) - parseFloat(groupedData[i][j]["money"])),
+                            jishuDay = ~~(strtotime(groupedData[i][j]["t"]) / 86400000) - ~~(strtotime(data[groupedData[i][j]['id'] - 1]["t"]) / 86400000);
                         }
 
                         var formattedTime = groupedData[i][j]["t"],
