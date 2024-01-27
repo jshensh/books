@@ -12,6 +12,8 @@ use app\loan\model\Transactions;
 use app\loan\model\Transactmode;
 use app\loan\model\Loan;
 
+use app\common\service\Data as DataService;
+
 class Index extends Controller
 {
     public function index()
@@ -34,6 +36,60 @@ class Index extends Controller
                 ->toArray()
         );
         $this->assign('data', $data);
+        return $this->fetch();
+    }
+
+    public function transfer(Request $request, DataService $dbData)
+    {
+        $msg = null;
+        $originPostData = null;
+
+        if ($request->isPost()) {
+            $params = $request->post();
+            $result = $this->validate($params, 'app\loan\validate\Transfer');
+
+            if (true !== $result) {
+                $msg = "数据错误，{$result}";
+            } else {
+                $transactMode = Transactmode::order('id')->value('id');
+                $insertResult1 = $dbData->insertNew("{$transactMode}_0", "{$params["txt"]}（付款至{$params["transferTo"]}）", $params["money"], $params["transferFrom"]);
+                $insertResult2 = $dbData->insertNew("0_{$transactMode}", "{$params["txt"]}（请款自{$params["transferFrom"]}）", $params["money"], $params["transferTo"]);
+                if ($insertResult1 && $insertResult2) {
+                    $insertResult1['insertIds']['loan'] = array_merge($insertResult1['insertIds']['loan'], $insertResult2['insertIds']['loan']);
+                    $insertResult1['insertIds']['transactions'] = array_merge($insertResult1['insertIds']['transactions'], $insertResult2['insertIds']['transactions']);
+                    $insertResult1['postData'] = $params;
+                    Session::set('rollback', json_encode($insertResult1));
+                    $msg = '插入成功 <a href="?rollback=true">撤销</a>';
+                } else {
+                    $msg = '插入失败';
+                }
+            }
+        } else {
+            if ($request->get("rollback")) {
+                $data = json_decode(Session::get('rollback'), 1);
+                if ($data && $dbData->doRollback($data)) {
+                    $msg = '撤销成功';
+                    Session::delete('rollback');
+                    $originPostData = $data['postData'];
+                } else {
+                    $msg = '撤销失败';
+                }
+            }
+        }
+
+        $data = Loan::group('name')
+            ->field([
+                'name',
+                'sum(money)' => 'all',
+            ])
+            ->order('all')
+            ->select()
+            ->toArray();
+        $this->assign('data', [
+            'loanUsers'      => $data,
+            'msg'            => $msg,
+            'originPostData' => $originPostData,
+        ]);
         return $this->fetch();
     }
 
