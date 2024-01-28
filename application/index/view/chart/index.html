@@ -203,13 +203,6 @@
                     enabled: false
                 }
             });
-            $(document).bind('mouseup',function() {
-                getResult();
-            }).bind('touchend',function() {
-                getResult();
-            }).bind('keyup',function() {
-                getResult();
-            });
             var getResult=function() {
                 var chart_ext=$('#container').highcharts().xAxis[0].getExtremes();
                 var min=Math.ceil((chart_ext.min/1000-8*60*60-yezs[0][0]/1000)/24/60/60);
@@ -228,6 +221,10 @@
                     Math.round((yezs[max][4]-yezs[min][1])*100)/100,
                     Math.round((incomeSum-expendSum)*100)/100);*/
             };
+            $(document).bind('mouseup', getResult)
+                .bind('touchend', getResult)
+                .bind('keyup', getResult);
+            $('#container').on('click', getResult);
             getResult();
         });
     </script>
