@@ -1,6 +1,6 @@
 {extend name="layout" /}
 
-{block name="title"}余额变化走势{/block}
+{block name="title"}资产波动走势{/block}
 
 {block name="content"}
         <div id="container"></div>
@@ -54,24 +54,6 @@
             return sum;
         };
         $(function () {
-            var getResult=function() {
-                var chart_ext=$('#container').highcharts().xAxis[0].getExtremes();
-                var min=Math.ceil((chart_ext.min/1000-8*60*60-yezs[0][0]/1000)/24/60/60);
-                min=min<0?0:min;
-                var max=Math.ceil((chart_ext.max/1000-8*60*60-yezs[0][0]/1000)/24/60/60);
-                var incomeSum=Math.round(incomeArr.sum(min,max)*100)/100;
-                var expendSum=Math.round(expendArr.sum(min,max)*100)/100;
-                var allSum=Math.round((incomeSum-expendSum)*100)/100;
-                $("#result").html('<p style="margin: 0;">'+new Date(yezs[min][0]).Format("yyyy-MM-dd")+" 至 "+new Date(yezs[max][0]).Format("yyyy-MM-dd")+"<br />收入 "+incomeSum.toFixed(2)+ " 元，平均 "+(incomeSum/(max-min+1)).toFixed(2)+" 元<br />支出 "+expendSum.toFixed(2)+ " 元，平均 "+(expendSum/(max-min+1)).toFixed(2)+" 元<br />共计 "+allSum.toFixed(2)+" 元，平均 "+(allSum/(max-min+1)).toFixed(2)+" 元<br />时段内：开 "+yezs[min][1].toFixed(2)+" 元，收 "+yezs[max][4].toFixed(2)+" 元</p>");
-
-                /*console.log(yezs[min][1],yezs[max][4],
-                    new Date(yezs[min][0]).Format("yyyy-MM-dd"),
-                    new Date(yezs[max][0]).Format("yyyy-MM-dd"),
-                    incomeSum,
-                    expendSum,
-                    Math.round((yezs[max][4]-yezs[min][1])*100)/100,
-                    Math.round((incomeSum-expendSum)*100)/100);*/
-            };
             Highcharts.setOptions({
                 global: {
                     timezoneOffset: -8*60
@@ -84,13 +66,6 @@
                 incomeArr=[],
                 expendArr=[],
                 expendSum=0,
-                groupingUnits = [[
-                    'week',
-                    [1]
-                ], [
-                    'month',
-                    [1]
-                ]],
                 lastClose=0.00,
                 firstDate=new Date(statements[0]["t"] + ' 00:00:00').getTime(),
                 lastDate=firstDate,
@@ -129,6 +104,26 @@
                     expendArr.push(0);
                 }
             }
+
+            var getResult=function() {
+                var chart_ext=$('#container').highcharts().xAxis[0].getExtremes();
+                var min=Math.ceil((chart_ext.min/1000-8*60*60-yezs[0][0]/1000)/24/60/60);
+                min=min<0?0:min;
+                var max=Math.ceil((chart_ext.max/1000-8*60*60-yezs[0][0]/1000)/24/60/60);
+                var incomeSum=Math.round(incomeArr.sum(min,max)*100)/100;
+                var expendSum=Math.round(expendArr.sum(min,max)*100)/100;
+                var allSum=Math.round((incomeSum-expendSum)*100)/100;
+                $("#result").html('<p style="margin: 0;">'+new Date(yezs[min][0]).Format("yyyy-MM-dd")+" 至 "+new Date(yezs[max][0]).Format("yyyy-MM-dd")+"<br />收入 "+incomeSum.toFixed(2)+ " 元，平均 "+(incomeSum/(max-min+1)).toFixed(2)+" 元<br />支出 "+expendSum.toFixed(2)+ " 元，平均 "+(expendSum/(max-min+1)).toFixed(2)+" 元<br />共计 "+allSum.toFixed(2)+" 元，平均 "+(allSum/(max-min+1)).toFixed(2)+" 元<br />时段内：开 "+yezs[min][1].toFixed(2)+" 元，收 "+yezs[max][4].toFixed(2)+" 元</p>");
+
+                /*console.log(yezs[min][1],yezs[max][4],
+                    new Date(yezs[min][0]).Format("yyyy-MM-dd"),
+                    new Date(yezs[max][0]).Format("yyyy-MM-dd"),
+                    incomeSum,
+                    expendSum,
+                    Math.round((yezs[max][4]-yezs[min][1])*100)/100,
+                    Math.round((incomeSum-expendSum)*100)/100);*/
+            };
+
             $('#container').highcharts('StockChart', {
                 tooltip: {
                     crosshairs:  [true, true]
@@ -137,7 +132,7 @@
                     selected: 1
                 },
                 title: {
-                    text: '余额变化走势'
+                    text: '资产波动走势'
                 },
                 yAxis: [{
                     labels: {
@@ -161,7 +156,7 @@
                     top: "50%",
                     height: "24%",
                     offset: 0,
-                    max: 5000
+                    // max: 5000
                 },{
                     labels: {
                         align: 'right',
@@ -174,13 +169,13 @@
                     top: "76%",
                     height: "24%",
                     offset: 0,
-                    plotLines : [{
-                        value : Math.round(expendArr.sum()/expend.length*100)/100,
-                        color : 'red',
-                        dashStyle : 'shortdash',
-                        width : 2,
-                        label : {
-                            text : '支出平均 '+Math.round(expendArr.sum()/expend.length*100)/100
+                    plotLines: [{
+                        value: Math.round(expendArr.sum()/expend.length*100)/100,
+                        color: 'red',
+                        dashStyle: 'shortdash',
+                        width: 2,
+                        label: {
+                            text: '支出平均 '+Math.round(expendArr.sum()/expend.length*100)/100
                         }
                     }]
                 }],
@@ -197,20 +192,59 @@
                     name: '余额',
                     data: yezs,
                     dataGrouping: {
-                        units: groupingUnits
+                        units: [
+                            ['millisecond', []],
+                            ['second', []],
+                            ['minute', []],
+                            ['hour', []],
+                            ['day', [1]],
+                            ['week', [1]],
+                            ['month', [1]],
+                            ['year', []]
+                        ]
                     }
                 },{
                     name: '收入',
                     data: income,
                     dataGrouping: {
-                        units: groupingUnits
+                        approximation: function() {
+                            return ~~(this.options.data.slice(
+                                this.dataGroupInfo.start,
+                                this.dataGroupInfo.start + this.dataGroupInfo.length
+                            ).reduce((a, b) => a + b[1], 0) * 100) / 100
+                        },
+                        units: [
+                            ['millisecond', []],
+                            ['second', []],
+                            ['minute', []],
+                            ['hour', []],
+                            ['day', [1]],
+                            ['week', [1]],
+                            ['month', [1]],
+                            ['year', []]
+                        ]
                     },
                     yAxis: 1
                 },{
                     name: '支出',
                     data: expend,
                     dataGrouping: {
-                        units: groupingUnits
+                        approximation: function() {
+                            return ~~(this.options.data.slice(
+                                this.dataGroupInfo.start,
+                                this.dataGroupInfo.start + this.dataGroupInfo.length
+                            ).reduce((a, b) => a + b[1], 0) * 100) / 100
+                        },
+                        units: [
+                            ['millisecond', []],
+                            ['second', []],
+                            ['minute', []],
+                            ['hour', []],
+                            ['day', [1]],
+                            ['week', [1]],
+                            ['month', [1]],
+                            ['year', []]
+                        ]
                     },
                     yAxis: 2
                 }],
