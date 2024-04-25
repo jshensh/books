@@ -64,18 +64,18 @@
             dom["pay"] = [], dom["sk"] = [], dom["topup"] = [], dom["withdrawal"] = [];
             for (var i in list) {
                 if (typeof list[i] === "object") {
-                    list[i]["topup"] === 1 && list[i]["id"] !== 1 && dom["topup"].push([list[i]["id"], i]);
-                    list[i]["withdrawal"] === 1 && list[i]["id"] !== 1 && dom["withdrawal"].push([list[i]["id"], i]);
-                    list[i]["sk"] === 1 && dom["sk"].push([list[i]["id"], i]);
-                    list[i]["pay"] === 1 && dom["pay"].push([list[i]["id"], i]);
+                    list[i]["topup"] !== 0 && dom["topup"].push([list[i]["id"], i, list[i]["topup"]]);
+                    list[i]["withdrawal"] !== 0 && dom["withdrawal"].push([list[i]["id"], i, list[i]["withdrawal"]]);
+                    list[i]["sk"] !== 0 && dom["sk"].push([list[i]["id"], i, list[i]["sk"]]);
+                    list[i]["pay"] !== 0 && dom["pay"].push([list[i]["id"], i, list[i]["pay"]]);
                 }
             }
             optGroup = {"pay": "支出", "sk": "收入", "topup": "充值", "withdrawal": "提现"};
-            opgValue = {"pay": "#tt1_0", "sk": "0_#tt1", "topup": "1_#tt1", "withdrawal": "#tt1_1"};
+            opgValue = {"pay": "#tt1_0", "sk": "0_#tt1", "topup": "#tt2_#tt1", "withdrawal": "#tt1_#tt2"};
             for (var transactionType in dom) {
                 var tmpOptGroup = newDom("optgroup", null, optGroup[transactionType]);
                 for (var id in dom[transactionType]) {
-                    tmpOptGroup.appendChild(newDom("option", null, list[dom[transactionType][id][1]]["name"] + optGroup[transactionType], null, opgValue[transactionType].replace(/#tt1/, dom[transactionType][id][0])));
+                    tmpOptGroup.appendChild(newDom("option", null, list[dom[transactionType][id][1]]["name"] + optGroup[transactionType], null, opgValue[transactionType].replace(/#tt1/, dom[transactionType][id][0]).replace(/#tt2/, dom[transactionType][id][2])));
                 }
                 document.getElementById('transactMode').appendChild(tmpOptGroup);
             }
