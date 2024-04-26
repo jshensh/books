@@ -15,7 +15,7 @@
                 toHtml += "<li><a href=\"/loan/detail/" + encodeURIComponent(data[i]["name"]) + "\">" + data[i]["minT"] + " 起共"+(parseFloat(data[i]["all"]) > 0 ? "从" : "向") + " " + data[i]["name"] + " " + (parseFloat(data[i]["all"]) > 0 ? "贷入" : "借出") + " " + Math.abs(parseFloat(data[i]["all"])).toFixed(2) + " 元</a></li>";
                 sumMoney += parseFloat(data[i]["all"]);
             }
-            document.getElementById('allList').innerHTML = toHtml + "<p>共计 " + sumMoney.toFixed(2) + " 元</p></ol>";
+            document.getElementById('allList').innerHTML = toHtml + "<p>共计 " + sumMoney.toFixed(2) + " 元</p><p><a href=\"/loan/transfer\" target=\"_blank\">发起划账</a></p></ol>";
         }
     </script>
 {/block}
