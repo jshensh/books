@@ -5,7 +5,7 @@
 thinkphp
 .env
 .DS_Store
-config/database.php
+/config
 extend
 runtime
 .user.ini
