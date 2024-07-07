@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>{block name="title"}{/block}</title>
+        <meta http-equiv="content-type" content="text/html; charset=UTF-8" />
+        <meta name="viewport" content="initial-scale=1.0,minimum-scale=1.0,maximum-scale=1.0,width=device-width,user-scalable=no" />
+        <style>
+            body {
+                font-family: "Helvetica Neue",Helvetica,Arial,"Hiragino Sans GB","Hiragino Sans GB W3","WenQuanYi Micro Hei",sans-serif;
+            }
+            a {
+                text-decoration:none;
+            }
+        </style>
+        {block name="css"}{/block}
+    </head>
+
+    <body style="margin: 10px 10px 70px 10px;">{block name="content"}{/block}
+
+        <footer class="footer">
+            <div>
+                <p style="height: 50px; line-height: 50px; margin: 0;"><a href="https://beian.miit.gov.cn/" target="_blank">footer</a></p>
+            </div>
+        </footer>
+    </body>
+
+    <style>
+        .footer {
+            position: fixed;
+            bottom: 0;
+            width: 100%;
+            margin: 0 -10px;
+            padding: 0 43.5px;
+            text-align: left;
+            font-family: "Helvetica Neue",Helvetica,Arial,sans-serif;
+            font-size: 14px;
+            /* Set the fixed height of the footer here */
+            height: 50px;
+            background-color: #f5f5f5;
+            z-index: 999;
+        }
+
+        .footer a {
+            text-decoration: none;
+        }
+    </style>
+{block name="javascript"}{/block}
+</html>
