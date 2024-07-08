@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "d80bd5b0dc1f17311fbdfb7b167aee09",
+    "content-hash": "f896a389432b7eae3d57a1ebdf28019d",
     "packages": [
         {
             "name": "league/flysystem",
@@ -682,60 +682,6 @@
                 "source": "https://github.com/top-think/think-helper/tree/v3.1.6"
             },
             "time": "2021-12-15T04:27:55+00:00"
-        },
-        {
-            "name": "topthink/think-multi-app",
-            "version": "v1.0.17",
-            "source": {
-                "type": "git",
-                "url": "https://github.com/top-think/think-multi-app.git",
-                "reference": "4055a6187296ac16c0bc7bbab4ed5d92f82f791c"
-            },
-            "dist": {
-                "type": "zip",
-                "url": "https://api.github.com/repos/top-think/think-multi-app/zipball/4055a6187296ac16c0bc7bbab4ed5d92f82f791c",
-                "reference": "4055a6187296ac16c0bc7bbab4ed5d92f82f791c",
-                "shasum": "",
-                "mirrors": [
-                    {
-                        "url": "https://mirrors.aliyun.com/composer/dists/%package%/%reference%.%type%",
-                        "preferred": true
-                    }
-                ]
-            },
-            "require": {
-                "php": ">=7.1.0",
-                "topthink/framework": "^6.0|^8.0"
-            },
-            "type": "library",
-            "extra": {
-                "think": {
-                    "services": [
-                        "think\\app\\Service"
-                    ]
-                }
-            },
-            "autoload": {
-                "psr-4": {
-                    "think\\app\\": "src"
-                }
-            },
-            "notification-url": "https://packagist.org/downloads/",
-            "license": [
-                "Apache-2.0"
-            ],
-            "authors": [
-                {
-                    "name": "liu21st",
-                    "email": "liu21st@gmail.com"
-                }
-            ],
-            "description": "thinkphp multi app support",
-            "support": {
-                "issues": "https://github.com/top-think/think-multi-app/issues",
-                "source": "https://github.com/top-think/think-multi-app/tree/v1.0.17"
-            },
-            "time": "2023-03-29T02:04:29+00:00"
         },
         {
             "name": "topthink/think-orm",
