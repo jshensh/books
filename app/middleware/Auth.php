@@ -1,8 +1,8 @@
 <?php
 
-namespace app\common\middleware;
+namespace app\middleware;
 
-use app\common\service\Auth as AuthService;
+use app\service\Auth as AuthService;
 
 class Auth
 {

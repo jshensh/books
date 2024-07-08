@@ -1,5 +1,5 @@
 <?php
-namespace app\common\service;
+namespace app\service;
 
 use think\facade\Session;
 use think\facade\Config;
