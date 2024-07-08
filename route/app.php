@@ -14,6 +14,7 @@ Route::group(function() {
     Route::get('', 'index/index/index');
     Route::post('', 'index/index/index');
     Route::get('currency$', 'index/index/Currency/index');
+    Route::post('currency$', 'index/index/Currency/index');
 })->middleware(app\middleware\Auth::class);
 
 Route::rule('login', 'login/index');

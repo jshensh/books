@@ -2,11 +2,84 @@
 
 {block name="title"}币种管理 - 账簿{/block}
 
+{block name="css"}
+    <style>
+        p {
+            margin: 3px 0
+        }
+    </style>
+{/block}
+
 {block name="content"}
-    <p>币种管理</p>
-    {:url('/login')->domain(true)}
+    <a href="{:url('/')->domain(true)}">< 返回首页</a>
+    <div style="padding: 3px">
+        <p id="msg" style="display: none;"></p>
+        <form action="" method="post">
+            <div id="formDiv"></div>
+            <p><input name="add_input" value="添加" type="button" onclick="render({});"/>&nbsp;&nbsp;<input name="submit" id="submit" value="提交" type="submit" /></p>
+        </form>
+    </div>
 {/block}
 
 {block name="javascript"}
+    <script>
+        var currency = {:json_encode($currency)},
+            msg = {:json_encode($msg)};
 
+        var uuid = function() {
+            var temp_url = URL.createObjectURL(new Blob());
+            var uuid = temp_url.toString();
+            URL.revokeObjectURL(temp_url);
+            return uuid.substr(uuid.lastIndexOf("/") + 1);
+        };
+
+        function render(values) {
+            var domKey = uuid();
+
+            var div = document.createElement("div");
+
+            var inputTxtMap = {
+                'code':      '货币代码',
+                'name':      '货币名称',
+                'scale':     '小数位数',
+                'symbol':    '货币符号',
+                'unit_name': '货币单位'
+            };
+
+            for (var k in inputTxtMap) {
+                var inputTxtDom = document.createElement("input");
+                inputTxtDom.type = "text";
+                inputTxtDom.value = typeof values[k] !== 'undefined' ? values[k] : '';
+                inputTxtDom.name = `currency[${domKey}][${k}]`;
+
+                var label = document.createElement("label");
+                label.innerHTML = `${inputTxtMap[k]}：`;
+
+                var container = document.createElement('p');
+                container.appendChild(label);
+                container.appendChild(inputTxtDom);
+
+                div.appendChild(container);
+            }
+
+            var btn = document.createElement("input");
+            btn.type = "button";
+            btn.value = "删除";
+            btn.onclick = function() {
+                div.parentElement.removeChild(div);
+            }
+            div.appendChild(document.createElement("p").appendChild(btn));
+            div.appendChild(document.createElement("hr"));
+            document.getElementById('formDiv').appendChild(div);
+        }
+
+        for (var i in currency) {
+            render(currency[i]);
+        }
+
+        if (msg) {
+            document.getElementById('msg').innerHTML = msg + '<hr />';
+            document.getElementById('msg').style["display"] = "block";
+        }
+    </script>
 {/block}
