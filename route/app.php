@@ -22,8 +22,17 @@ Route::group(function() {
     Route::get('currency$', 'Currency/index');
     Route::post('currency$', 'Currency/index');
 
-    Route::get('transactmode/:currency', 'Transactmode/index');
-    Route::post('transactmode/:currency', 'Transactmode/index');
+    Route::group(function() {
+
+        Route::get('transactmode/:currency', 'Transactmode/index');
+        Route::post('transactmode/:currency', 'Transactmode/index');
+        
+        Route::get('accounts/:currency/$', 'Accounts/index');
+        Route::post('accounts/:currency/$', 'Accounts/index');
+        Route::get('accounts/:currency/chart$', 'Accounts/chart');
+        Route::get('accounts/:currency/transactions$', 'Account/transactions');
+
+    })->middleware(app\middleware\CheckCurrencyExists::class);
     
 })->middleware(app\middleware\Auth::class);
 

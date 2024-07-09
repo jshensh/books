@@ -15,14 +15,14 @@
 {/block}
 
 {block name="content"}
-    <a href="{:url('/')->domain(true)}">< 返回首页</a>
-    <div style="padding: 3px">
-        <p id="msg" style="display: none;"></p>
-        <form action="" method="post">
-            <div id="formDiv"></div>
-            <p><input name="add_input" value="添加" type="button" onclick="render({});"/>&nbsp;&nbsp;<input name="submit" id="submit" value="提交" type="submit" /></p>
-        </form>
-    </div>
+        <a href="{:url('/')->domain(true)}">< 返回首页</a>
+        <div style="padding: 3px">
+            <p id="msg" style="display: none;"></p>
+            <form action="" method="post">
+                <div id="formDiv"></div>
+                <p><input name="add_input" value="添加" type="button" onclick="render({});"/>&nbsp;&nbsp;<input name="submit" id="submit" value="提交" type="submit" /></p>
+            </form>
+        </div>
 {/block}
 
 {block name="javascript"}

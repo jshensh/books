@@ -15,11 +15,6 @@ class Transactmode extends BaseController
     public function index($currency, Request $request)
     {
         $currency = CurrencyModel::find($currency);
-
-        if (!$currency) {
-            View::assign('errmsg', '找不到指定币种');
-            return View::fetch('/error');
-        }
         
         $msg = '';
         try {
@@ -53,6 +48,7 @@ class Transactmode extends BaseController
         } catch (\think\exception\ValidateException $e) {
             $msg = "数据错误，{$e->getMessage()}";
         }
+        
         View::assign(
             'transactmode',
             TransactmodeModel::leftJoin('transactions', 'transactions.transactmode_id = transactmode.id')
