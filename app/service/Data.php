@@ -3,6 +3,7 @@ namespace app\service;
 
 use think\facade\Db;
 
+use app\model\Currency;
 use app\model\Transactions;
 use app\model\Transactmode;
 use app\model\Loan;
@@ -25,12 +26,25 @@ class Data
             'loan' => [],
             'transactions' => []
         ];
+
+        $currencyInfo = Transactmode::join('currency', 'currency.code = transactmode.currency_code')
+            ->where('id', 'in', [$inTransactMode, $outTransactMode])
+            ->field(['currency.code', 'currency.scale', 'transactmode.id'])
+            ->select();
+
+        if (!count($currencyInfo) || ($inTransactMode > 0 && $outTransactMode > 0 && (count($currencyInfo) !== 2 || $currencyInfo[0]->code !== $currencyInfo[1]->code))) {
+            return false;
+        }
+
+        $scale = $currencyInfo[0]->scale;
+        
         Db::startTrans();
         try {
             if (Statements::count()) {
                 $lastday = Statements::order('t', 'desc')
-                                ->limit(1)
-                                ->find();
+                    ->where('currency_code', '=', $currencyInfo[0]->code)
+                    ->limit(1)
+                    ->find();
             }
 
             /**
@@ -42,27 +56,29 @@ class Data
             if (isset($lastday)) {
                 if ($lastday->t !== date("Y-m-d", $t)) {
                     (new Statements)->save([
-                        't'      => date("Y-m-d", $t),
-                        'low'    => $lastday->closed,
-                        'high'   => $lastday->closed,
-                        'closed' => $lastday->closed,
-                        'income' => 0,
-                        'expend' => 0,
+                        't'             => date("Y-m-d", $t),
+                        'low'           => $lastday->closed,
+                        'high'          => $lastday->closed,
+                        'closed'        => $lastday->closed,
+                        'income'        => 0,
+                        'expend'        => 0,
+                        'currency_code' => $currencyInfo[0]->code
                     ]);
                 }
             } else {
                 (new Statements)->save([
-                    't'      => date("Y-m-d", $t),
-                    'low'    => 0,
-                    'high'   => 0,
-                    'closed' => 0,
-                    'income' => 0,
-                    'expend' => 0,
+                    't'             => date("Y-m-d", $t),
+                    'low'           => 0,
+                    'high'          => 0,
+                    'closed'        => 0,
+                    'income'        => 0,
+                    'expend'        => 0,
+                    'currency_code' => $currencyInfo[0]->code
                 ]);
             }
 
             // 重新获取今日统计，并上锁，为后续更新数据做准备，当发现仍没有数据时则报错
-            $todayStatement = Statements::where('t', strtotime(date("Y-m-d", $t)))->lock(true)->find();
+            $todayStatement = Statements::where('currency_code', '=', $currencyInfo[0]->code)->where('t', strtotime(date("Y-m-d", $t)))->lock(true)->find();
             if (!$todayStatement) {
                 throw \Exception();
             }
@@ -107,7 +123,7 @@ class Data
 
                 /** 当一笔借款 / 还款操作数额过度，导致借贷关系反转时需要拆分单笔账目 */
                 if (($hisLoanSum ^ $money) < 0 && (float)$hisLoanSum !== 0.00) {
-                    $loanNewSum = (float)bcadd($hisLoanSum, $money, 2);
+                    $loanNewSum = (float)bcadd($hisLoanSum, $money, $scale);
                     if (($hisLoanSum ^ $loanNewSum) < 0 && (float)$loanNewSum !== 0.00) {
                         $money = $loanNewSum;
 
@@ -132,7 +148,7 @@ class Data
                                     ->limit(1)
                                     ->value('amount', 0.00),
                                 $hisLoanSum,
-                                2
+                                $scale
                             ),
                             't'               => $t
                         ]);
@@ -172,7 +188,7 @@ class Data
                                 ->limit(1)
                                 ->value('amount', 0.00),
                             $money,
-                            2
+                            $scale
                         ),
                         't'               => $t
                     ]);
@@ -182,19 +198,19 @@ class Data
                 } else {
                     // 只有发生实际的支出 / 收入操作时才操作统计数据
                     if ($money < 0) {
-                        $todayStatement->expend = bcsub($todayStatement->expend, $money, 2);
-                        if ((float)bcadd($todayStatement->closed, $money, 2) < $todayStatement->low) {
-                            $todayStatement->low = bcadd($todayStatement->closed, $money, 2);
+                        $todayStatement->expend = bcsub($todayStatement->expend, $money, $scale);
+                        if ((float)bcadd($todayStatement->closed, $money, $scale) < $todayStatement->low) {
+                            $todayStatement->low = bcadd($todayStatement->closed, $money, $scale);
                         }
                         $txt = $txt ? $txt : '支出';
                     } else if ($money > 0) {
-                        $todayStatement->income = bcadd($todayStatement->income, $money, 2);
-                        if ((float)bcadd($todayStatement->closed, $money, 2) > $todayStatement->high) {
-                            $todayStatement->high = bcadd($todayStatement->closed, $money, 2);
+                        $todayStatement->income = bcadd($todayStatement->income, $money, $scale);
+                        if ((float)bcadd($todayStatement->closed, $money, $scale) > $todayStatement->high) {
+                            $todayStatement->high = bcadd($todayStatement->closed, $money, $scale);
                         }
                         $txt = $txt ? $txt : '收入';
                     }
-                    $todayStatement->closed = bcadd($todayStatement->closed, $money, 2);
+                    $todayStatement->closed = bcadd($todayStatement->closed, $money, $scale);
                     $todayStatement->save();
                 }
             }
@@ -210,7 +226,7 @@ class Data
                         ->limit(1)
                         ->value('amount', 0.00),
                     $money,
-                    2
+                    $scale
                 ),
                 't'               => $t
             ]);
@@ -218,7 +234,7 @@ class Data
 
             // 提交事务
             Db::commit();
-            return ['insertIds' => $insertIds, 'originTodayStatementData' => $originTodayStatementData, 't' => $t];
+            return ['insertIds' => $insertIds, 'originTodayStatementData' => $originTodayStatementData, 't' => $t, 'currency' => $currencyInfo[0]->code];
         } catch (\Exception $e) {
             dump('Line ' . $e->getLine() . ': ' . $e->getMessage() . "\n" . $e->getTraceAsString());
             // 回滚事务
@@ -263,7 +279,7 @@ class Data
         try {
             Loan::where('id', 'in', $data['insertIds']['loan'])->delete();
             Transactions::where('id', 'in', $data['insertIds']['transactions'])->delete();
-            Statements::where('t', '=', strtotime(date('Y-m-d', $data['t'])))->update($data['originTodayStatementData']);
+            Statements::where('currency_code', '=', $data['currency'])->where('t', '=', strtotime(date('Y-m-d', $data['t'])))->update($data['originTodayStatementData']);
 
             // 提交事务
             Db::commit();
