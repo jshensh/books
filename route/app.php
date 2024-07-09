@@ -10,6 +10,10 @@
 // +----------------------------------------------------------------------
 use think\facade\Route;
 
+Route::pattern([
+    'currency' => '[a-zA-Z\(\)]+',
+]);
+
 Route::group(function() {
     
     Route::get('', 'Index/index');
@@ -17,6 +21,9 @@ Route::group(function() {
 
     Route::get('currency$', 'Currency/index');
     Route::post('currency$', 'Currency/index');
+
+    Route::get('transactmode/:currency', 'Transactmode/index');
+    Route::post('transactmode/:currency', 'Transactmode/index');
     
 })->middleware(app\middleware\Auth::class);
 

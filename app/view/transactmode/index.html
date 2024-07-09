@@ -1,0 +1,176 @@
+{extend name="layout" /}
+
+{block name="title"}交易方式管理 - 账簿{/block}
+
+{block name="css"}
+    <style>
+        p {
+            margin: 3px 0
+        }
+
+        input[type=button] {
+            margin: 3px 0;
+        }
+    </style>
+{/block}
+
+{block name="content"}
+    <a href="{:url('/')->domain(true)}">< 返回首页</a>
+    <div style="padding: 3px">
+        <p id="msg" style="display: none;"></p>
+        <p>编辑 {$currency['name']} {$currency['code']} 的交易方式</p>
+        <hr />
+        <form action="" method="post">
+            <div id="formDiv"></div>
+            <p><input name="add_input" value="添加" type="button" onclick="render({});"/>&nbsp;&nbsp;<input name="submit" id="submit" value="提交" type="submit" /></p>
+        </form>
+    </div>
+{/block}
+
+{block name="javascript"}
+    <script>
+        var transactmode = {:json_encode($transactmode)},
+            msg = {:json_encode($msg)};
+
+        var uuid = function() {
+            var temp_url = URL.createObjectURL(new Blob());
+            var uuid = temp_url.toString();
+            URL.revokeObjectURL(temp_url);
+            return uuid.substr(uuid.lastIndexOf("/") + 1);
+        };
+
+        var getTransactmodeSelectDom = function(k, v, currentId) {
+            var selectDom = document.createElement("select");
+            selectDom.name = k;
+            var option = document.createElement("option");
+            option.value = '0';
+            option.innerHTML = '禁用';
+
+            if (v === 0) {
+                option.selected = 'selected';
+            }
+
+            selectDom.appendChild(option);
+
+            for (var i = 0; i < transactmode.length; i++) {
+                if (transactmode[i]['id'] !== currentId) {
+                    var option = document.createElement("option");
+                    option.value = transactmode[i]['id'];
+                    option.innerHTML = transactmode[i]['name'];
+
+                    if (v === transactmode[i]['id']) {
+                        option.selected = 'selected';
+                    }
+
+                    selectDom.appendChild(option);
+                }
+            }
+
+            return selectDom;
+        };
+
+        function render(values) {
+            var domKey = uuid();
+
+            var div = document.createElement("div");
+
+            var inputTxtMap = {
+                'id':         {'name': '自增编号', 'type': 'hidden', 'attr': {}},
+                'name':       {'name': '显示名称', 'type': 'text', 'attr': {}},
+                'topup':      {'name': '充值来源', 'type': getTransactmodeSelectDom, 'attr': {}},
+                'withdrawal': {'name': '提现去向', 'type': getTransactmodeSelectDom, 'attr': {}},
+                'sk':         {'name': '收款支持', 'type': 'bool', 'attr': {}},
+                'pay':        {'name': '支付支持', 'type': 'bool', 'attr': {}},
+                'is_shown':   {'name': '列表显示', 'type': 'bool', 'attr': {}},
+                'sortid':     {'name': '排序权重', 'type': 'text', 'attr': {}}
+            };
+
+            for (var k in inputTxtMap) {
+                switch (inputTxtMap[k]['type']) {
+                    case 'hidden':
+                        var inputDom = document.createElement("input");
+                        inputDom.type = "hidden";
+                        inputDom.value = typeof values[k] !== 'undefined' ? values[k] : '';
+                        inputDom.name = `transactmode[${domKey}][${k}]`;
+                        break;
+
+                    case 'text':
+                        var inputDom = document.createElement("input");
+                        inputDom.type = "text";
+                        inputDom.value = typeof values[k] !== 'undefined' ? values[k] : '';
+                        inputDom.name = `transactmode[${domKey}][${k}]`;
+                        break;
+
+                    case 'bool':
+                        var inputDom = document.createElement("span");
+                        var boolVal = ['禁用', '启用'];
+                        for (var i = 0; i < boolVal.length; i++) {
+                            var tmp = document.createElement("input");
+                            tmp.type = "radio";
+                            tmp.value = i;
+                            tmp.name = `transactmode[${domKey}][${k}]`;
+                            tmp.checked = (typeof values[k] !== 'undefined' && ~~values[k] === i) ? 'checked' : '';
+                            for (var i in inputTxtMap[k]['attr']) {
+                                tmp.setAttribute(i, inputTxtMap[k]['attr'][i]);
+                            }
+                            var labelDom = document.createElement("label");
+                            labelDom.appendChild(tmp);
+                            labelDom.appendChild(document.createTextNode(boolVal[i]));
+                            inputDom.appendChild(labelDom);
+                        }
+                        break;
+
+                    default:
+                        if (typeof inputTxtMap[k]['type'] === 'function') {
+                            var inputDom = inputTxtMap[k]['type'](`transactmode[${domKey}][${k}]`, values[k], values['id']);
+                            break;
+                        }
+
+                        continue;
+                }
+
+                if (inputTxtMap[k]['type'] !== 'bool') {
+                    for (var i in inputTxtMap[k]['attr']) {
+                        inputDom.setAttribute(i, inputTxtMap[k]['attr'][i]);
+                    }
+                }
+
+                if (inputTxtMap[k]['type'] === 'hidden') {
+                    div.appendChild(inputDom);
+                    continue;
+                }
+                
+                var label = document.createElement("label");
+                label.innerHTML = `${inputTxtMap[k]['name']}：`;
+
+                var container = document.createElement('p');
+                container.appendChild(label);
+                container.appendChild(inputDom);
+
+                div.appendChild(container);
+            }
+
+            if (values['transactions_count'] === 0) {
+                var btn = document.createElement("input");
+                btn.type = "button";
+                btn.value = "删除";
+                btn.onclick = function() {
+                    window.location.href = `?delete=${values['id']}`;
+                }
+                div.appendChild(document.createElement("p").appendChild(btn));
+            }
+            
+            div.appendChild(document.createElement("hr"));
+            document.getElementById('formDiv').appendChild(div);
+        }
+
+        for (var i in transactmode) {
+            render(transactmode[i]);
+        }
+
+        if (msg) {
+            document.getElementById('msg').innerHTML = msg + '<hr />';
+            document.getElementById('msg').style["display"] = "block";
+        }
+    </script>
+{/block}

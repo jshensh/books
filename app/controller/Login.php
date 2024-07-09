@@ -22,7 +22,8 @@ class Login extends BaseController
                     return redirect('/');
                 }
             } catch (\think\Exception $e) {
-                return View::fetch('error');
+                View::assign('errmsg', '请先设置管理员密码');
+                return View::fetch('/error');
             }
             $isLoginFailed = true;
         }
