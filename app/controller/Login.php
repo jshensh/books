@@ -10,8 +10,11 @@ class Login extends BaseController
 {
     public function index(Request $request)
     {
+        $referer = parse_url($request->get('referer'));
+        $referer = $referer ? (ltrim($referer['path'] ?? '', '/') . (isset($referer['query']) ? "?{$referer['query']}" : '')) : '';
+        
         if (Auth::isLogined()) {
-            return redirect('/');
+            return redirect("/{$referer}");
         }
 
         $isLoginFailed = false;
@@ -19,7 +22,7 @@ class Login extends BaseController
         if ($request->isPost()) {
             try {
                 if (Auth::login($request->post('password'))) {
-                    return redirect('/');
+                    return redirect("/{$referer}");
                 }
             } catch (\think\Exception $e) {
                 View::assign('errmsg', '请先设置管理员密码');
