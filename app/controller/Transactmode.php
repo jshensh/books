@@ -32,7 +32,7 @@ class Transactmode extends BaseController
                         $param = array_filter($param, function($v, $k) {
                             return in_array($k, ['id', 'name', 'topup', 'withdrawal', 'sk', 'pay', 'is_shown', 'sortid'], true) && ($k !== 'id' || $v !== '');
                         }, ARRAY_FILTER_USE_BOTH);
-                        $param['currency_code'] = $currency;
+                        $param['currency_code'] = $currency->code;
                     }
                     unset($param);
                 }

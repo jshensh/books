@@ -9,7 +9,10 @@ class Auth
     public function handle($request, \Closure $next)
     {
         if (!AuthService::isLogined()) {
-            return redirect(url('/login', ['referer' => $_SERVER['REQUEST_URI']]));
+            if (ltrim($_SERVER['REQUEST_URI'], '/')) {
+                return redirect(url('/login', ['referer' => $_SERVER['REQUEST_URI']]));
+            }
+            return redirect('/login');
         }
 
         return $next($request);
