@@ -1,56 +1,38 @@
-ThinkPHP 6.0
-===============
+```sql
+--
+-- 表 `currency`
+--
 
-> 运行环境要求PHP7.2+，兼容PHP8.1
+CREATE TABLE `currency` (
+  `code` varchar(10) NOT NULL COMMENT 'CNY',
+  `name` varchar(10) NOT NULL COMMENT '人民币',
+  `scale` tinyint(1) UNSIGNED NOT NULL DEFAULT 2 COMMENT '2',
+  `symbol` varchar(5) NOT NULL DEFAULT '' COMMENT '￥',
+  `unit_name` varchar(5) NOT NULL DEFAULT '' COMMENT '元',
+  `sortid` int(10) UNSIGNED NOT NULL DEFAULT 0
+) ENGINE=MyISAM DEFAULT CHARSET=utf8mb4;
 
-[官方应用服务市场](https://market.topthink.com) | [`ThinkAPI`——官方统一API服务](https://docs.topthink.com/think-api)
+ALTER TABLE `currency`
+  ADD PRIMARY KEY (`code`);
+COMMIT;
 
-ThinkPHPV6.0版本由[亿速云](https://www.yisu.com/)独家赞助发布。
+--
+-- 表 `statements`
+--
 
-## 主要新特性
+ALTER TABLE `statements` ADD `currency_code` VARCHAR(10) NOT NULL AFTER `id`;
+ALTER TABLE `statements` CHANGE `low` `low` DECIMAL(20,8) NOT NULL, CHANGE `high` `high` DECIMAL(20,8) NOT NULL, CHANGE `closed` `closed` DECIMAL(20,8) NOT NULL, CHANGE `income` `income` DECIMAL(20,8) NOT NULL DEFAULT '0.00', CHANGE `expend` `expend` DECIMAL(20,8) NOT NULL DEFAULT '0.00';
+ALTER TABLE `zb2`.`statements` DROP INDEX `t`, ADD INDEX `t` (`t`) USING BTREE;
 
-* 采用`PHP7`强类型（严格模式）
-* 支持更多的`PSR`规范
-* 原生多应用支持
-* 更强大和易用的查询
-* 全新的事件系统
-* 模型事件和数据库事件统一纳入事件系统
-* 模板引擎分离出核心
-* 内部功能中间件化
-* SESSION/Cookie机制改进
-* 对Swoole以及协程支持改进
-* 对IDE更加友好
-* 统一和精简大量用法
+--
+-- 表 `transactions`
+--
 
-## 安装
+ALTER TABLE `transactions` CHANGE `money` `money` DECIMAL(20,8) NOT NULL, CHANGE `amount` `amount` DECIMAL(20,8) NOT NULL DEFAULT '0.00';
 
-~~~
-composer create-project topthink/think tp 6.0.*
-~~~
+--
+-- 表 `transactmode`
+--
 
-如果需要更新框架使用
-~~~
-composer update topthink/framework
-~~~
-
-## 文档
-
-[完全开发手册](https://www.kancloud.cn/manual/thinkphp6_0/content)
-
-## 参与开发
-
-请参阅 [ThinkPHP 核心框架包](https://github.com/top-think/framework)。
-
-## 版权信息
-
-ThinkPHP遵循Apache2开源协议发布，并提供免费使用。
-
-本项目包含的第三方源码和二进制文件之版权信息另行标注。
-
-版权所有Copyright © 2006-2021 by ThinkPHP (http://thinkphp.cn)
-
-All rights reserved。
-
-ThinkPHP® 商标和著作权所有者为上海顶想信息科技有限公司。
-
-更多细节参阅 [LICENSE.txt](LICENSE.txt)
+ALTER TABLE `transactmode` ADD `currency_code` VARCHAR(10) NOT NULL AFTER `id`;
+```
