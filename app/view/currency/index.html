@@ -7,6 +7,10 @@
         p {
             margin: 3px 0
         }
+
+        input[type=button] {
+            margin: 3px 0;
+        }
     </style>
 {/block}
 
@@ -43,7 +47,8 @@
                 'name':      '货币名称',
                 'scale':     '小数位数',
                 'symbol':    '货币符号',
-                'unit_name': '货币单位'
+                'unit_name': '货币单位',
+                'sortid':    '排序权重'
             };
 
             for (var k in inputTxtMap) {

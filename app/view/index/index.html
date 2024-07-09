@@ -2,10 +2,24 @@
 
 {block name="title"}账簿{/block}
 
-{block name="content"}
-    {:url('/login')->domain(true)}
+{block name="css"}
+    <style>
+        ul {
+            margin: 5px 0;
+        }
+    </style>
 {/block}
 
-{block name="javascript"}
-
+{block name="content"}
+    账簿列表：
+    <ul>
+    {foreach $currencySum as $row}
+        <li>{$row['name']} {$row['code']}，余额 {$row['symbol'] ? $row['symbol'] . " " : ""}{:rtrim(substr($row['amount'], 0, $row['scale'] - 8), '.')} {$row['unit_name']}<br />　<a href="{:url('/manage/' . $row['code'])->domain(true)}">管理账目</a>　<a href="{:url('/transactmode/' . $row['code'])->domain(true)}">编辑付款方式</a>
+    {/foreach}
+    </ul>
+    操作：
+    <ul>
+        <li><a href="{:url('/currency')->domain(true)}">币种管理</a></li>
+        <li>换汇</li>
+    </ul>
 {/block}

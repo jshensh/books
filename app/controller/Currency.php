@@ -21,7 +21,7 @@ class Currency extends BaseController
                     foreach ($params as &$param) {
                         $result = $this->validate($param, 'app\validate\Currency');
                         $param = array_filter($param, function($var) {
-                            return in_array($var, ['code', 'name', 'scale', 'symbol', 'unit_name'], true);
+                            return in_array($var, ['code', 'name', 'scale', 'symbol', 'unit_name', 'sortid'], true);
                         }, ARRAY_FILTER_USE_KEY);
                     }
                     unset($param);
@@ -34,7 +34,7 @@ class Currency extends BaseController
         } catch (\think\exception\ValidateException $e) {
             $msg = "数据错误，{$e->getMessage()}";
         }
-        View::assign('currency', CurrencyModel::select());
+        View::assign('currency', CurrencyModel::order('sortid')->select());
         View::assign('msg', $msg);
         return View::fetch();
     }

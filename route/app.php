@@ -11,10 +11,13 @@
 use think\facade\Route;
 
 Route::group(function() {
-    Route::get('', 'index/index/index');
-    Route::post('', 'index/index/index');
-    Route::get('currency$', 'index/index/Currency/index');
-    Route::post('currency$', 'index/index/Currency/index');
+    
+    Route::get('', 'Index/index');
+    Route::post('', 'Index/index');
+
+    Route::get('currency$', 'Currency/index');
+    Route::post('currency$', 'Currency/index');
+    
 })->middleware(app\middleware\Auth::class);
 
 Route::rule('login', 'login/index');
