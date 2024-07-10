@@ -1,0 +1,39 @@
+{extend name="layout" /}
+
+{block name="title"}资产变化明细 - 账簿{/block}
+
+{block name="content"}
+        <ol id="list"></ol>
+        <p>共计<span id="total"></span></p>
+        <p id="changeDay"></p>
+{/block}
+
+{block name="javascript"}
+    <script>
+        Object.prototype.indexOf = function(val) {
+            for (var i in this) {
+                if (this[i] == val) return i;
+            }
+            return -1;
+        };
+        window.onload=function() {
+            var data = {:json_encode($data, JSON_UNESCAPED_UNICODE)};
+            var transactModeTmp = data['transactMode'],
+                transactions = data['transactions'],
+                transactMode = {},
+                mode = data['mode'];
+            var currencySymbol = `${data.currency.symbol ? (data.currency.symbol + ' ') : ''}`;
+            for (var i = 0 ; i < transactModeTmp.length; i++) {
+                transactMode[transactModeTmp[i]["id"]] = transactModeTmp[i]["name"];
+            }
+            var totalM = 0;
+            for (var i = 0; i < transactions.length; i++) {
+                document.getElementById('list').innerHTML += "<li>" + transactions[i]["t"] + (transactions[i]["txt"] !== "支出" && transactions[i]["txt"] !== "收入" ? " 因 " + transactions[i]["txt"] : "") + " " + (parseFloat(transactions[i]["money"]) < 0 ? "支出" : "收入") + " " + currencySymbol + Math.abs(parseFloat(transactions[i]["money"])).toFixed(data['currency']['scale']) + ' ' + data['currency']['unit_name'] + (!mode ? " (" + transactMode[transactions[i]["transactmode_id"]] + ")" : "") + "</li>";
+                var matchV = transactions[i]["txt"].match("^(.*?)(充值|提现|借款|还款|销账)( \(.+\))?$");
+                totalM += (matchV && transactMode.indexOf(matchV[1])) ? 0 : parseFloat(transactions[i]["money"]);
+            }
+            document.getElementById('total').innerHTML = (totalM > 0 ? "收入" : (totalM < 0 ? "支出" : "")) + " " + currencySymbol + Math.abs(totalM).toFixed(data['currency']['scale']) + ' ' + data['currency']['unit_name'];
+            document.getElementById('changeDay').innerHTML = data['link'];
+        };
+    </script>
+{/block}

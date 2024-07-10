@@ -30,7 +30,7 @@ Route::group(function() {
         Route::get('accounts/:currency/$', 'Accounts/index');
         Route::post('accounts/:currency/$', 'Accounts/index');
         Route::get('accounts/:currency/chart$', 'Accounts/chart');
-        Route::get('accounts/:currency/transactions$', 'Account/transactions');
+        Route::get('accounts/:currency/transactions$', 'Accounts/transactions');
 
     })->middleware(app\middleware\CheckCurrencyExists::class);
     

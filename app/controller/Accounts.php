@@ -96,4 +96,36 @@ class Accounts extends BaseController
             );
         return View::fetch();
     }
+
+    public function transactions($currency, Request $request)
+    {
+        $currency = CurrencyModel::find($currency);
+        $decimal = 'decimal(' . (20 - $currency->scale) . ',' . $currency->scale . ')';
+        $t = strtotime($request->get('t', date('Y-m-d')));
+        $mode = $request->get('transactMode');
+
+        if (!$t) {
+            $t = strtotime(date('Y-m-d'));
+        }
+
+        $transactions = TransactionsModel::join('transactmode', 'transactmode.id = transactions.transactmode_id')
+            ->where('transactmode.currency_code', '=', $currency->code)
+            ->where('transactions.t', '>=', $t)
+            ->where('transactions.t', '>=', $t)
+            ->where('transactions.t', '<', $t + 86400)
+            ->field(['transactions.id', 'transactions.transactmode_id', "cast(transactions.money as {$decimal}) as money", 'transactions.txt', "cast(transactions.amount as {$decimal}) as amount", 'transactions.t'])
+            ->order(['transactions.t' => 'desc', 'transactions.id' => 'desc']);
+        if ($mode) {
+            $transactions = $transactions->where('transactions.transactmode_id', '=', $mode);
+        }
+
+        View::assign('data', [
+            'currency'     => $currency,
+            'transactMode' => TransactmodeModel::where('currency_code', '=', $currency->code)->field(['id', 'name'])->select(),
+            'transactions' => $transactions->select(),
+            'mode'         => $mode,
+            'link'         => '<a href="?t=' . date('Y-m-d', $t - 86400) . ($mode ? "&transactMode={$mode}" : "") . '">前一天</a>'. (strtotime(date("Y-m-d")) - $t > 0 ? ('&nbsp;<a href="?t=' . date('Y-m-d', $t + 86400) . ($mode ? "&transactMode={$mode}" : "") . '">后一天</a>') : ""),
+        ]);
+        return View::fetch();
+    }
 }
