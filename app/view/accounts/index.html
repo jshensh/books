@@ -116,6 +116,7 @@
                 var opg = originPostData["transactMode"].match(/^(\d+_1|1_\d+)$/) && originPostData["transactMode"] !== "1_0" && originPostData["transactMode"] !== "0_1";
                 document.getElementById('txtP').style["display"] = opg ? "none" : "block";
                 document.getElementById('loanP').style["display"] = opg ? "none" : "block";
+                document.getElementById('loanL').innerHTML = originPostData["transactMode"].match(/^(\d+_0)$/) ? "借出" : "贷入";
                 if (originPostData["name"]) {
                     document.getElementById('name').value = originPostData["name"];
                     document.getElementById('loan').click();

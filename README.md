@@ -40,4 +40,6 @@ ALTER TABLE `transactmode` ADD `currency_code` VARCHAR(10) NOT NULL AFTER `id`;
 -- 表 `loan`
 --
 
+ALTER TABLE `loan` CHANGE `money` `money` DECIMAL(20,8) NOT NULL;
+ALTER TABLE `loan` ADD `is_frozen` TINYINT UNSIGNED NOT NULL DEFAULT '0' AFTER `money`;
 ```

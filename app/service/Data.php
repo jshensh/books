@@ -275,6 +275,12 @@ class Data
 
     public function doRollback($data)
     {
+        rsort($data['insertIds']['transactions']);
+
+        if (Transactions::where('id', '>', $data['insertIds']['transactions'][0])->count()) {
+            return false;
+        }
+        
         Db::startTrans();
         try {
             Loan::where('id', 'in', $data['insertIds']['loan'])->delete();
