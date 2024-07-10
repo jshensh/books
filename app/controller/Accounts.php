@@ -80,4 +80,20 @@ class Accounts extends BaseController
         ]);
         return View::fetch();
     }
+
+    public function chart($currency, Request $request)
+    {
+        $currency = CurrencyModel::find($currency);
+        $decimal = 'decimal(' . (20 - $currency->scale) . ',' . $currency->scale . ')';
+
+        View::assign('currency', $currency);
+        View::assign(
+            'statements',
+            StatementsModel::where('currency_code', '=', $currency->code)
+                ->field(['id', 't', "cast(low as {$decimal}) as low", "cast(high as {$decimal}) as high", "cast(closed as {$decimal}) as closed", "cast(income as {$decimal}) as income", "cast(expend as {$decimal}) as expend"])
+                ->order('id')
+                ->select()
+            );
+        return View::fetch();
+    }
 }
