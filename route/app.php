@@ -33,6 +33,7 @@ Route::group(function() {
         Route::post('accounts/:currency/$', 'Accounts/index');
         Route::get('accounts/:currency/chart$', 'Accounts/chart');
         Route::get('accounts/:currency/transactions$', 'Accounts/transactions');
+        Route::get('accounts/:currency/loan/:name', 'Loan/detail')->pattern(['name' => '.+']);
 
     })->middleware(app\middleware\CheckCurrencyExists::class);
     

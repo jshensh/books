@@ -1,0 +1,262 @@
+{extend name="layout" /}
+
+{block name="title"}借贷账目明细 - 账簿{/block}
+
+{block name="content"}
+        <div id="detail">
+            <center>
+                <table style="text-align: center;">
+                    <thead>
+                        <tr>
+                            <th rowspan="2" style="min-width: 67px;">日期</th>
+                            <th rowspan="2">摘要</th>
+                            <th rowspan="2" style="min-width: 27px;">交易方式</th>
+                            <th id="detailTableDebitHeader" colspan="14">借方</th>
+                            <th id="detailTableCreateHeader" colspan="14">贷方</th>
+                            <th rowspan="2">借或贷</th>
+                            <th id="detailTableAmountHeader" colspan="15">余额</th>
+                            <th rowspan="2">积数 / <br />(元·日)</th>
+                            <th rowspan="2">积数计算结果</th>
+                        </tr>
+                        <tr id="detailTableHead"></tr>
+                    </thead>
+                    <tbody id="detailLine">
+
+                    </tbody>
+                </table>
+                <p><a href="####" onclick="doDelete();">销账</a>&nbsp;&nbsp;&nbsp;<a href="####" onclick="getShareLink();">分享账单给债务人</a><span id="interestSpan">&nbsp;&nbsp;&nbsp;<a href="####" onclick="interest();">结息</a></span></p>
+                <form action="" method="post" id="del">
+                    <input type="hidden" name="delete" value="true" />
+                </form>
+            </center>
+        </div>
+{/block}
+
+{block name="css"}
+        <style>
+            table, th, td {
+                border: 1px solid #3ACECE;
+            }
+            th {
+                color: #3ACECE;
+            }
+            table {
+                border-collapse: collapse;
+                border-right: none;
+                border-top: none;
+            }
+            th, td {
+                padding: 3px;
+                font-size: 13px;
+                border-bottom: none;
+                border-left: none;
+            }
+            .addRedLine td {
+                border-top-color: red !important;
+            }
+        </style>
+{/block}
+
+{block name="javascript"}
+        <script src="https://cdn.hcharts.cn/jquery/jquery-1.8.3.min.js"></script>
+        <script>
+            var data = {:json_encode($data, JSON_UNESCAPED_UNICODE)}, sumMoney = 0.00;
+            var currency = {:json_encode($currency)};
+            document.getElementById('detailTableDebitHeader').setAttribute('colspan', 11 + currency.scale);
+            document.getElementById('detailTableCreateHeader').setAttribute('colspan', 11 + currency.scale);
+            document.getElementById('detailTableAmountHeader').setAttribute('colspan', 12 + currency.scale);
+            Date.prototype.Format = function(fmt) {
+                var o = {
+                    "M+" : this.getMonth()+1,
+                    "d+" : this.getDate(),
+                    "h+" : this.getHours(),
+                    "m+" : this.getMinutes(),
+                    "s+" : this.getSeconds(),
+                    "q+" : Math.floor((this.getMonth()+3)/3),
+                    "S"  : this.getMilliseconds()
+                };
+                if(/(y+)/.test(fmt))
+                    fmt=fmt.replace(RegExp.$1, (this.getFullYear()+"").substr(4 - RegExp.$1.length));
+                for(var k in o)
+                    if(new RegExp("("+ k +")").test(fmt))
+                        fmt = fmt.replace(RegExp.$1, (RegExp.$1.length==1) ? (o[k]) : (("00"+ o[k]).substr((""+ o[k]).length)));
+                return fmt;
+            };
+            Array.prototype.sum = function() {
+                var re=0;
+                for (var i=0;i<this.length;i++) {
+                    re+=~~this[i];
+                }
+                return re;
+            };
+            function num_fix(num) {
+                return parseFloat(parseFloat(String(num).replace(/[^\d\-\.]/g,"")).toFixed(currency.scale));
+            };
+            var doDelete=function() {
+                var name = {:json_encode($name, JSON_UNESCAPED_UNICODE)};
+                if (prompt("您正要进行销账操作，该操作无法撤回。在您正确输入“"+name+"”后才可继续操作")==name) {
+                    document.getElementById('del').submit();
+                } else {
+                    alert("已取消操作");
+                }
+            };
+            var getShareLink=function() {
+                $.ajax({
+                    type: 'post',
+                    url: location.href,
+                    dataType: 'json',
+                    timeout: 5000,
+                    data: {"shareTime": prompt("请输入链接有效时长（分钟）：","30"), "path": location.origin+location.pathname.match(/.*\//)},
+                    success: function(re) {
+                        if (re["status"]==="success") {
+                            prompt("复制以下链接",re["link"]);
+                        } else {
+                            alert("请求失败");
+                        }
+                    },
+                    error: function(XMLHttpRequest,status) {
+                        alert("请求失败");
+                    }
+                });
+            };
+            var strtotime=function(datetime) { 
+                var tmp_datetime = datetime.replace(/:/g,'-');
+                tmp_datetime = tmp_datetime.replace(/ /g,'-');
+                var arr = tmp_datetime.split("-");
+                var now = new Date(Date.UTC(arr[0],arr[1]-1,arr[2],arr[3]-8,arr[4],arr[5]));
+                return now.getTime();
+            }
+            window.onload=function() {
+                var tableHeadStr = ('百十亿仟百十万千百十' + currency.unit_name).split('');
+                console.log(tableHeadStr);
+                for (var i = 0; i < 3; i++) {
+                    for (var j = 0; j < tableHeadStr.length + currency.scale; j++) {
+                        var th = document.createElement('th');
+                        th.innerHTML = tableHeadStr[j] ?? '　';
+                        if (j === 10 && currency.scale) {
+                            th.style.borderRightColor = 'Red';
+                        }
+                        document.getElementById('detailTableHead').appendChild(th);
+                    }
+                    if (i === 1) {
+                        var th = document.createElement('th');
+                        th.innerHTML = '&nbsp;';
+                        document.getElementById('detailTableHead').appendChild(th);
+                    }
+                }
+                
+                var getFormatMoney = function(value, needAbs) {
+                    value = needAbs ? Math.abs(parseFloat(value)) : parseFloat(value);
+                    value = !isNaN(value) ? (((new Array(12 + currency.scale)).join(' ') + (value.toFixed(currency.scale).replace(/\./g, ""))).substr(-11 - currency.scale)).split("") : (new Array(12 + currency.scale)).join(' ').split("");
+                    var re = "";
+                    for (var j = 0; j < value.length; j++) {
+                        re += "<td" + (j == 10 && currency.scale ? " style=\"border-right-color: red\"" : "") + ">" + value[j].replace(/ /g,"&nbsp;") + "</td>";
+                    }
+                    return re;
+                };
+
+                var groupedData = [[]], sumMoney = 0.00;
+                for (var i = 0; i < data.length; i++) {
+                    sumMoney += parseFloat(data[i]["money"]);
+                    sumMoney = num_fix(sumMoney);
+
+                    groupedData[groupedData.length ? groupedData.length - 1 : 0].push({
+                        'id'              : i,
+                        'transactmodeName': data[i]['transactmode_name'],
+                        'money'           : data[i]['money'],
+                        'txt'             : data[i]['txt'],
+                        't'               : data[i]['t'],
+                        'sumMoney'        : sumMoney
+                    });
+
+                    if (!sumMoney && i !== data.length - 1) {
+                        groupedData.push([]);
+                    }
+                }
+
+                var detailTrTemplate = "<tr{{__addRedLine__}} id=\"account_{{__detailGroupNo__}}_{{__detailLineNo__}}\"{{__isShow__}}>\n\
+    <td>{{__formattedTime__}}</td>\n\
+    <td>{{__txt__}}</td>\n\
+    <td>{{__transactmodeName__}}</td>\n\
+    {{__formattedDebit__}}\n\
+    {{__formattedCredit__}}\n\
+    <td>{{__side__}}</td>\n\
+    <td>{{__formattedDrCrMoney__}}</td>\n\
+    {{__formattedSumMoney__}}\n\
+    <td>{{__jishuFormula__}}</td>\n\
+    <td>{{__jishuResult__}}</td>\n\
+</tr>";
+                    
+                var detailLineData = '';
+
+                for (var i = 0; i < groupedData.length; i++) {
+                    var isShow = (i > groupedData.length - 3);
+
+                    if (!isShow) {
+                        detailLineData += '<tr ' + (i !== 0 ? ' class="addRedLine"' : '') + ' style="cursor: pointer;" maxAccount=' + groupedData[i].length + ' id="account_' + i + '" onclick="showHiddenAccount(this);"><td colspan="' + (40 + 3 * currency.scale) + '">已折叠 ' + groupedData[i][0]["t"] + ' 至 ' + groupedData[i][groupedData[i].length - 1]["t"] + ' 的账目，点击本行展开</td></tr>';
+                    }
+
+                    for (var j = 0; j < groupedData[i].length; j++) {
+                        if (!(i === 0 && j === 0)) {
+                            var jishu = ~~num_fix(parseFloat(groupedData[i][j]["sumMoney"]) - parseFloat(groupedData[i][j]["money"])),
+                            jishuDay = ~~(strtotime(groupedData[i][j]["t"]) / 86400000) - ~~(strtotime(data[groupedData[i][j]['id'] - 1]["t"]) / 86400000);
+                        }
+
+                        var formattedTime = groupedData[i][j]["t"],
+                            formattedDebit = (parseFloat(groupedData[i][j]["money"]) < 0 ? getFormatMoney(groupedData[i][j]["money"], true) : getFormatMoney("", false)),
+                            formattedCredit = (parseFloat(groupedData[i][j]["money"]) > 0 ? getFormatMoney(groupedData[i][j]["money"], true) : getFormatMoney("", false)),
+                            side = (parseFloat(groupedData[i][j]["money"]) > 0 ? "贷" : "借"),
+                            formattedDrCrMoney = (parseFloat(groupedData[i][j]["money"]) > 0 ? parseFloat(groupedData[i][j]["money"]).toFixed(currency.scale) : "<span style=\"color: red\">(" + Math.abs(parseFloat(groupedData[i][j]["money"])).toFixed(currency.scale) + ")</span>"),
+                            formattedSumMoney = getFormatMoney(groupedData[i][j]["sumMoney"], false),
+                            jishuFormula = (!jishu ? "/" : (jishu + " × " + jishuDay)),
+                            jishuResult = (!jishu ? "/" : num_fix(jishu * jishuDay));
+                        
+                        detailLineData += detailTrTemplate
+                            .replace(/\{\{__addRedLine__\}\}/g, (i !== 0 && j === 0) ? ' class="addRedLine"' : '')
+                            .replace(/\{\{__isShow__\}\}/g, !isShow ? ' style="display: none;"' : '')
+                            .replace(/\{\{__detailGroupNo__\}\}/g, i)
+                            .replace(/\{\{__detailLineNo__\}\}/g, j)
+                            .replace(/\{\{__formattedTime__\}\}/g, formattedTime)
+                            .replace(/\{\{__txt__\}\}/g, groupedData[i][j]["txt"])
+                            .replace(/\{\{__transactmodeName__\}\}/g, groupedData[i][j]["transactmodeName"])
+                            .replace(/\{\{__formattedDebit__\}\}/g, formattedDebit)
+                            .replace(/\{\{__formattedCredit__\}\}/g, formattedCredit)
+                            .replace(/\{\{__formattedDrCrMoney__\}\}/g, formattedDrCrMoney)
+                            .replace(/\{\{__side__\}\}/g, side)
+                            .replace(/\{\{__formattedSumMoney__\}\}/g, formattedSumMoney)
+                            .replace(/\{\{__jishuFormula__\}\}/g, jishuFormula)
+                            .replace(/\{\{__jishuResult__\}\}/g, jishuResult);
+                    }
+                }
+
+                document.getElementById('detailLine').innerHTML = detailLineData;
+            };
+            var showHiddenAccount=function(ele) {
+                var j=parseInt(ele.getAttribute("maxAccount"));
+                for (var k=0;k<j;k++) {
+                    document.getElementById(ele.getAttribute("id")+"_"+k).style["display"]="table-row";
+                }
+                ele.remove();
+            };
+            var interest=function() {
+                var rate=parseFloat(prompt("请输入年利率（5.2%=0.052）","0.052")),date=prompt("请输入起始结算日期",new Date().Format("yyyy-MM-dd"));
+                var startDom=$("#detailLine tr td:contains('"+date+"'):first");
+                if (!rate || !startDom.length) {
+                    return false;
+                }
+                var firstChargeNumber=~~startDom.parent().find("td:eq(39)").html();
+                var chargeNumber=firstChargeNumber?[firstChargeNumber]:[],doms=startDom.parent().nextAll().find("td:eq(39)");
+                for (var i=0;i<doms.length;i++) {
+                    if (~~doms[i].innerHTML) {
+                        chargeNumber.push(~~doms[i].innerHTML);
+                    }
+                }
+                var lastDay=~~(~~(new Date().getTime()/1000/86400)-~~(data[data.length-1]["t"]/86400))*~~sumMoney;
+                if (lastDay) {
+                    chargeNumber.push(lastDay);
+                }
+                $("#detailLine").append($('<tr><td colspan="40" style="text-align: right; word-break: break-all;">自 '+date+' 起共计息 ('+chargeNumber.join("+")+')*'+rate+'/365='+(~~(chargeNumber.sum()*rate/365*100)/100)+' 元</td></tr>'));
+                $("#interestSpan").remove();
+            }
+        </script>
+{/block}

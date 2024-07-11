@@ -142,7 +142,7 @@
                 allBalance += parseFloat(amount[i]["amount"] || 0);
             };
             balanceTmp.push("<tr><td style=\"text-align: right\">总计：</td><td><a href=\"transactions\" target=\"_blank\">" + parseFloat(allBalance).toFixed(data['currentCurrency']['scale']) + "</a></td></tr>");
-            balanceTmp.push("<tr><td style=\"text-align: right\">借款：</td><td><a href=\"loan\" target=\"_blank\">" + parseFloat(loanSum).toFixed(data['currentCurrency']['scale']) + "</a></td></tr>");
+            balanceTmp.push("<tr><td style=\"text-align: right\">借款：</td><td><a href=\"{:url('/loan')->domain(true)}\" target=\"_blank\">" + parseFloat(loanSum).toFixed(data['currentCurrency']['scale']) + "</a></td></tr>");
             document.getElementById('balance').innerHTML += balanceTmp.join("");
         };
     </script>
