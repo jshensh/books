@@ -3,6 +3,8 @@ namespace app\controller;
 
 use think\Request;
 use think\facade\View;
+use think\facade\Config;
+use think\facade\Db;
 use app\BaseController;
 use app\service\Auth;
 use app\service\UcAuthCode;
@@ -13,8 +15,21 @@ use app\model\Transactions as TransactionsModel;
 
 class Loan extends BaseController
 {
-    public function index()
+    public function index($name = '', Request $request)
     {
+        if ($request->post('shareTime') && $request->post('name')) {
+            $shareTime = $request->post('shareTime');
+            if (is_numeric($shareTime) && $shareTime > 0) {
+                $key = Config::get('system.loanshare_key');
+                if (!$key) {
+                    return json(["status" => "error"]);
+                }
+                $token = urlencode(UcAuthCode::encode($request->post('name'), $key, $shareTime * 60));
+                return json(["status" => "success", "link" => $request->root(true) . "/loanShare/{$token}"]);
+            }
+            return json(["status" => "error"]);
+        }
+        
         $data = array_map(
             function($v) {
                 $v['minT'] = date('Y-m-d H:i:s', $v['minT']);
@@ -49,14 +64,14 @@ class Loan extends BaseController
         $currency = CurrencyModel::find($currency);
         $decimal = 'decimal(' . (20 - $currency->scale) . ',' . $currency->scale . ')';
 
-        if ($request->post('delete') === 'true') {
-            $sum = Loan::join('transactmode', 'transactmode.id = loan.transactmode_id')
+        if (Auth::isLogined() && $request->post('delete') === 'true') {
+            $sum = LoanModel::join('transactmode', 'transactmode.id = loan.transactmode_id')
                 ->where('loan.name', '=', $name)
-                ->where('transactmode.currency_code', '=', $currency)
+                ->where('transactmode.currency_code', '=', $currency->code)
                 ->sum('loan.money');
             $transactions = new TransactionsModel;
             $transactions->save([
-                'transactmode_id' => 1,
+                'transactmode_id' => TransactmodeModel::where('currency_code', '=', $currency->code)->min('id'),
                 'money'           => -$sum,
                 'txt'             => "{$name}销账",
                 'amount'          => bcsub(
@@ -69,24 +84,14 @@ class Loan extends BaseController
                 ),
                 't'               => time(),
             ]);
-            LoanModel::join('transactmode', 'transactmode.id = loan.transactmode_id')
+            Db::table('loan')
+                ->alias('TLOAN')
+                ->join('transactmode', 'transactmode.id = loan.transactmode_id')
                 ->where('loan.name', '=', $name)
-                ->where('transactmode.currency_code', '=', $currency)
+                ->where('transactmode.currency_code', '=', $currency->code)
+                ->extra('TLOAN')
                 ->delete();
             return redirect(url('/loan')->domain(true));
-        }
-
-        if ($request->post('shareTime')) {
-            $shareTime = $request->post('shareTime');
-            if (is_numeric($shareTime) && $shareTime > 0) {
-                $key = Config::get('system.loanshare_key');
-                if (!$key) {
-                    return json(["status" => "error"]);
-                }
-                $token = urlencode(UcAuthCode::encode($name, $key, $shareTime * 60));
-                return json(["status" => "success", "link" => url("/loanShare/{$token}")->domain(true)]);
-            }
-            return json(["status" => "error"]);
         }
 
         $data = LoanModel::with('transactmode')
