@@ -25,7 +25,7 @@ class Accounts extends BaseController
                 $params = $request->post();
                 $result = $this->validate($params, 'app\validate\Accounts');
 
-                $insertResult = $dbData->insertNew($params["transactMode"], $params["txt"], $params["money"], $params["name"]);
+                $insertResult = $dbData->insertNew($params["transactMode"], $params["txt"], $params["money"], $params["name"], (int) (bool) $params["isFrozen"] ?? 0);
                 if ($insertResult) {
                     $insertResult['postData'] = $params;
                     Session::set('rollback', json_encode($insertResult));

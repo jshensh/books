@@ -11,7 +11,7 @@ use app\model\Statements;
 
 class Data
 {
-    private function doInsertNew($inTransactMode, $outTransactMode, $txt, $money, $loanName)
+    private function doInsertNew($inTransactMode, $outTransactMode, $txt, $money, $loanName, $isFrozen)
     {
         $money = (float)$money;
         $inTransactMode = (int)$inTransactMode;
@@ -99,7 +99,11 @@ class Data
 
             /** 如果存在借款人，则修改账目备注（表示这是一笔借 / 贷款，借入贷出） */
             if ($loanName) {
-                $hisLoanSum = Loan::where('name', '=', $loanName)->sum('money');
+                $hisLoanSum = Loan::join('transactmode', 'transactmode.id = loan.transactmode_id')
+                    ->where('loan.name', '=', $loanName)
+                    ->where('loan.is_frozen', '=', $isFrozen)
+                    ->where('transactmode.currency_code', '=', $currencyInfo[0]->code)
+                    ->sum('loan.money');
                 $txtForLoan = $txt;
                 if ((float)$hisLoanSum === 0.00) {
                     if ($money < 0) {
@@ -133,6 +137,7 @@ class Data
                             'transactmode_id' => $tmpTransactMode,
                             'money'           => -$hisLoanSum,
                             'txt'             => $txtForLoan,
+                            'is_frozen'       => $isFrozen,
                             't'               => $t
                         ]);
                         $insertIds['loan'][] = $loan1->id;
@@ -168,6 +173,7 @@ class Data
                     'transactmode_id' => $tmpTransactMode,
                     'money'           => $money,
                     'txt'             => $txtForLoan,
+                    'is_frozen'       => $isFrozen,
                     't'               => $t
                 ]);
                 $insertIds['loan'][] = $loan2->id;
@@ -243,7 +249,7 @@ class Data
         return false;
     }
 
-    public function insertNew($mode, $txt, $money, $name)
+    public function insertNew($mode, $txt, $money, $name, $isFrozen)
     {
         list($outTransactMode, $inTransactMode) = explode("_", $mode);
 
@@ -270,7 +276,7 @@ class Data
             }
         }
 
-        return $this->doInsertNew($inTransactMode, $outTransactMode, $txt, $money, $name);
+        return $this->doInsertNew($inTransactMode, $outTransactMode, $txt, $money, $name, $isFrozen);
     }
 
     public function doRollback($data)

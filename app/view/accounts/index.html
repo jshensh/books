@@ -12,6 +12,7 @@
                 <p><label for="money">金额：</label><input type="text" name="money" id="money" /></p>
                 <p id="loanP"><input type="checkbox" name="loan" id="loan" value="true" /><label for="loan" id="loanL">借出</label></p>
                 <p id="nameP" style="display: none;"><label for="name">姓名：</label><input type="text" name="name" id="name" /></p>
+                <p id="isFrozenP" style="display: none;"><input type="checkbox" name="isFrozen" id="isFrozen" value="1" /><label for="isFrozen" id="isFrozenL">操作冻结资产</label></p>
                 {:token_field()}
                 <p><input type="submit" name="send" id="send" value="提交" /></p>
             </form>
@@ -90,6 +91,7 @@
                 document.getElementById('txtP').style["display"] = opg ? "none" : "block";
                 document.getElementById('loanP').style["display"] = opg ? "none" : "block";
                 document.getElementById('nameP').style["display"] = opg ? "none" : (document.getElementById('loan').checked && "block");
+                document.getElementById('isFrozenP').style["display"] = opg ? "none" : (document.getElementById('isFrozen').checked && "block");
                 if (opg) {
                     document.getElementById('txt').value = this.options[this.options.selectedIndex].text;
                 } else {
@@ -100,8 +102,10 @@
             document.getElementById('loan').onclick = function() {
                 if (this.checked) {
                     document.getElementById('nameP').style["display"] = "block";
+                    document.getElementById('isFrozenP').style["display"] = "block";
                 } else {
                     document.getElementById('nameP').style["display"] = "none";
+                    document.getElementById('isFrozenP').style["display"] = "none";
                 }
             }
             setInterval(updateTime, 1000);
@@ -120,6 +124,9 @@
                 if (originPostData["name"]) {
                     document.getElementById('name').value = originPostData["name"];
                     document.getElementById('loan').click();
+                    if (originPostData['isFrozen']) {
+                        document.getElementById('isFrozen').click();
+                    }
                 }
                 document.getElementById('money').value = Math.abs(parseFloat(originPostData["money"]));
                 document.getElementById('txt').value = originPostData["txt"];

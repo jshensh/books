@@ -22,6 +22,8 @@ Route::group(function() {
     Route::get('currency$', 'Currency/index');
     Route::post('currency$', 'Currency/index');
 
+    Route::get('loan$', 'Loan/index');
+
     Route::group(function() {
 
         Route::get('transactmode/:currency', 'Transactmode/index');
