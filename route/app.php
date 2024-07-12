@@ -16,21 +16,15 @@ Route::pattern([
 
 Route::group(function() {
     
-    Route::get('', 'Index/index');
-    Route::post('', 'Index/index');
-
-    Route::get('currency$', 'Currency/index');
-    Route::post('currency$', 'Currency/index');
-
+    Route::rule('', 'Index/index');
+    Route::rule('currency$', 'Currency/index');
     Route::get('loan$', 'Loan/index');
+    Route::post('loan/share$', 'Loan/share');
 
     Route::group(function() {
 
-        Route::get('transactmode/:currency', 'Transactmode/index');
-        Route::post('transactmode/:currency', 'Transactmode/index');
-        
-        Route::get('accounts/:currency/$', 'Accounts/index');
-        Route::post('accounts/:currency/$', 'Accounts/index');
+        Route::rule('transactmode/:currency', 'Transactmode/index');
+        Route::rule('accounts/:currency/$', 'Accounts/index');
         Route::get('accounts/:currency/chart$', 'Accounts/chart');
         Route::get('accounts/:currency/transactions$', 'Accounts/transactions');
         Route::get('accounts/:currency/loan/:name', 'Loan/detail')->pattern(['name' => '.+']);
@@ -40,3 +34,5 @@ Route::group(function() {
 })->middleware(app\middleware\Auth::class);
 
 Route::rule('login', 'login/index');
+Route::get('share/:token/:currency/', 'loan/detail')->pattern(['token' => '.+']);
+Route::get('share/:token', 'loan/index')->pattern(['token' => '.+']);

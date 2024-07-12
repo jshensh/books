@@ -1,0 +1,84 @@
+{extend name="layout" /}
+
+{block name="title"}借款 - 账簿{/block}
+
+{block name="content"}
+        <p id="rdp">本链接将于 <span id="rd"></span> 后失效</p>
+        <div id="allList"></div>
+{/block}
+
+{block name="css"}
+    <style>
+        ul {
+            padding-left: 20px;
+        }
+        ul li {
+            padding-top: 0;
+        }
+    </style>
+{/block}
+
+{block name="javascript"}
+    <script src="{:url('/static/js/jquery-1.8.3.min.js')->domain(true)}"></script>
+    <script>
+        var updateTime=function(time) {
+            t=new Date(parseInt(time)*1000).getTime()-new Date().getTime();
+            if (t<=0) {
+                document.getElementById("rdp").style["display"]="none";
+                return false;
+            }
+            var d=Math.floor(t/1000/60/60/24);
+            var h=("0"+Math.floor(t/1000/60/60%24)).substr(-2);
+            var m=("0"+Math.floor(t/1000/60%60)).substr(-2);
+            var s=("0"+Math.floor(t/1000%60)).substr(-2);
+            document.getElementById("rd").innerHTML=(d?(d+" 天 "):"")+(h!=="00"?(h+" 时 "):"")+(m!=="00"?(m+" 分 "):"")+(s+" 秒");
+        };
+        
+        window.onload = function() {
+            var data = {:json_encode($data, JSON_UNESCAPED_UNICODE)},
+                currency = {:json_encode($currency, JSON_UNESCAPED_UNICODE)},
+                rd = {:json_encode($rd, JSON_UNESCAPED_UNICODE)},
+                token = {:json_encode($token)};
+
+            updateTime(rd);
+            setInterval(function() { updateTime(rd); }, 1000);
+
+            var toHtml = "<ul>", sumMoney = {}, loanData = {}, dataName = data[0]['name'];
+            for (var i = 0; i < data.length; i++) {
+                if (typeof loanData[data[i]['currency_code']] === 'undefined') {
+                    loanData[data[i]['currency_code']] = {
+                        'all': 0.0,
+                        'maxT': data[i]["maxT"],
+                        'minT': data[i]["minT"],
+                        'frozenAmount': 0.0,
+                    };
+                }
+                if (data[i]['is_frozen']) {
+                    loanData[data[i]['currency_code']]['all'] += parseFloat(data[i]["all"]);
+                    loanData[data[i]['currency_code']]['frozenAmount'] += parseFloat(data[i]["all"]);
+                } else {
+                    loanData[data[i]['currency_code']]['all'] += parseFloat(data[i]["all"]);
+                }
+            }
+
+            for (var dataCurrencyCode in loanData) {
+                var currencySymbol = `${currency[dataCurrencyCode].symbol ? (currency[dataCurrencyCode].symbol + ' ') : ''}`;
+                var forzenAmountHtml = loanData[dataCurrencyCode]['frozenAmount'] ? `<br /><a href="{:url('/')->domain(true)}share/${encodeURIComponent(token)}/${dataCurrencyCode}/?is_frozen=1">（含${(parseFloat(loanData[dataCurrencyCode]['frozenAmount']) > 0 ? "贷出" : "借入")}冻结资金 ${currency[dataCurrencyCode]['name']} ${currencySymbol}${Math.abs(parseFloat(loanData[dataCurrencyCode]['frozenAmount'])).toFixed(currency[dataCurrencyCode]['scale'])} ${currency[dataCurrencyCode]['unit_name']}）</a>` : ''
+                toHtml += `<li><a href="{:url('/')->domain(true)}share/${encodeURIComponent(token)}/${dataCurrencyCode}/">${loanData[dataCurrencyCode]["minT"]} 起合计${(parseFloat(loanData[dataCurrencyCode]["all"]) > 0 ? "贷出" : "借入")} ${currency[dataCurrencyCode]['name']} ${currencySymbol}${Math.abs(parseFloat(loanData[dataCurrencyCode]["all"])).toFixed(currency[dataCurrencyCode]['scale'])} ${currency[dataCurrencyCode]['unit_name']}</a>${forzenAmountHtml}</li>`;
+                if (typeof sumMoney[currency[dataCurrencyCode]['code']] === 'undefined') {
+                    sumMoney[currency[dataCurrencyCode]['code']] = 0.00000000;
+                }
+                sumMoney[currency[dataCurrencyCode]['code']] += parseFloat(loanData[dataCurrencyCode]["all"]);
+            }
+
+            toHtml += '</ul>';
+            var sumHtml = [];
+            for (var i in sumMoney) {
+                var currencySymbol = `${currency[i].symbol ? (currency[i].symbol + ' ') : ''}`;
+                sumHtml.push(`${(parseFloat(sumMoney[i]) > 0 ? "贷出" : "借入")} ${currency[i]['name']} ${currencySymbol}${Math.abs(parseFloat(sumMoney[i])).toFixed(currency[dataCurrencyCode]['scale'])} ${currency[i]['unit_name']}`);
+            }
+            document.getElementById('allList').innerHTML = toHtml + `<p>共计${sumHtml.join('，')}</p>`;
+
+        };
+    </script>
+{/block}

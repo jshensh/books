@@ -28,7 +28,28 @@
 {/block}
 
 {block name="javascript"}
+    <script src="{:url('/static/js/jquery-1.8.3.min.js')->domain(true)}"></script>
     <script>
+        var getShareLink = function(name) {
+            $.ajax({
+                type: 'post',
+                url: `{:url('/loan/share')}`,
+                dataType: 'json',
+                timeout: 5000,
+                data: {"shareTime": prompt(`您正在分享 ${name} 的所有账目，请输入链接有效时长（分钟）：`,"30"), "path": location.origin+location.pathname.match(/.*\//), 'name': name},
+                success: function(re) {
+                    if (re["status"]==="success") {
+                        prompt("复制以下链接",re["link"]);
+                    } else {
+                        alert("请求失败");
+                    }
+                },
+                error: function(XMLHttpRequest,status) {
+                    alert("请求失败");
+                }
+            });
+        };
+        
         window.onload = function() {
             var data = {:json_encode($data, JSON_UNESCAPED_UNICODE)},
                 currency = {:json_encode($currency, JSON_UNESCAPED_UNICODE)};
@@ -59,7 +80,7 @@
                     if (lastName) {
                         toHtml += '</ul>';
                     }
-                    toHtml += `<li>${dataName}</li><ul>`;
+                    toHtml += `<li>${dataName}&nbsp;&nbsp;&nbsp;<a href="####" onclick="getShareLink('${dataName}');">分享账单</a></li><ul>`;
                     lastName = dataName;
                 }
                 for (var dataCurrencyCode in loanData[dataName]) {
@@ -76,7 +97,7 @@
             var sumHtml = [];
             for (var i in sumMoney) {
                 var currencySymbol = `${currency[i].symbol ? (currency[i].symbol + ' ') : ''}`;
-                sumHtml.push(`${(parseFloat(sumMoney[i]) > 0 ? "贷入" : "借出")} ${currency[i]['name']} ${currencySymbol}${sumMoney[i].toFixed(currency[i]['scale'])} ${currency[i]['unit_name']}`);
+                sumHtml.push(`${(parseFloat(sumMoney[i]) > 0 ? "贷入" : "借出")} ${currency[i]['name']} ${currencySymbol}${Math.abs(parseFloat(sumMoney[i])).toFixed(currency[dataCurrencyCode]['scale'])} ${currency[i]['unit_name']}`);
             }
             document.getElementById('allList').innerHTML = toHtml + `<p>共计${sumHtml.join('，')}</p></ol>`;
 
