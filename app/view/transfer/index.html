@@ -1,0 +1,337 @@
+{extend name="layout" /}
+
+{block name="title"}资金划转 - 账簿{/block}
+
+{block name="css"}
+    <style>
+        p {
+            margin: 3px 0
+        }
+        ul {
+            margin: 3px 0;
+        }
+    </style>
+{/block}
+
+{block name="content"}
+        <a href="{:url('/')->domain(true)}">< 返回首页</a>
+        <form action="" method="post">
+            <p id="msg" style="display: none;"></p>
+            <p><label for="localCurrency">本币币种：</label><select name="localCurrency" id="localCurrency"></select></p>
+            <p><label for="localTransactionMode">交易方式：</label><select name="localTransactionMode" id="localTransactionMode"></select></p>
+            <p id="localLoanUserP"><label for="localLoanUser">交易对象：</label><select name="localLoanUser" id="localLoanUser"><optgroup label="自有资金"><option value="">自有资金</option></optgroup><optgroup id="localLoanUserContainer" label="债权人/债务人"></optgroup></select></p>
+            <p id="localIsFrozenP" style="display: none;">　　　　　<input type="checkbox" name="localIsFrozen" id="localIsFrozen" value="1" /><label for="localIsFrozen">操作冻结资产</label></p>
+            <p><label>交易方向：</label><label><input type="radio" name="direction" id="directionWithdrawal" value="withdrawal" checked="checked" />出金（交易代收）</label>&nbsp;<label><input type="radio" name="direction" id="directionDeposit" value="deposit" />入金（交易代付）</label>&nbsp;<label><input type="radio" name="direction" id="directionExchange" value="exchange" />外汇对敲</label></p>
+            <p id="localLoanUserP"><label for="localMoney">交易金额：</label><input type="text" name="localMoney" id="localMoney" /></p>
+            <hr />
+            <p><label for="foreignCurrency">外币币种：</label><select name="foreignCurrency" id="foreignCurrency"></select></p>
+            <p><label for="foreignTransactionMode">交易方式：</label><select name="foreignTransactionMode" id="foreignTransactionMode"></select></p>
+            <p id="foreignLoanUserP"><label for="foreignLoanUser">交易对象：</label><select name="foreignLoanUser" id="foreignLoanUser"><optgroup label="自有资金"><option value="">自有资金</option></optgroup><optgroup id="foreignLoanUserContainer" label="债权人/债务人"></optgroup></select></p>
+            <p id="foreignIsFrozenP" style="display: none;">　　　　　<input type="checkbox" name="foreignIsFrozen" id="foreignIsFrozen" value="1" /><label for="foreignIsFrozen">操作冻结资产</label></p>
+            <p id="exchangeRateP" style="display: none;"><label for="exchangeRate">参考汇率：</label><br /><span id="exchangeRateForeignCurrency"></span> 100.0000 : <span id="exchangeRateLocalCurrency"></span> <input type="text" id="exchangeRate" style="width: 80px;"/></p>
+            <p id="foreignMoneyP" style="display: none;"><label for="foreignMoney">交易金额：</label><input type="text" name="foreignMoney" id="foreignMoney" /></p>
+            <hr />
+            <p id="txtP"><label for="txt">备注：</label><input type="text" name="txt" id="txt" /></p>
+            {:token_field()}
+            <div id="preview"></div>
+            <p><input type="submit" name="send" id="send" value="提交" /></p>
+        </form>
+{/block}
+
+{block name="javascript"}
+    <script>
+        var data = {:json_encode($data, JSON_UNESCAPED_UNICODE)};
+
+        var newDom = function(tag, id, innerHTML, name, value) {
+            var re = document.createElement(tag);
+            id !== null && (re.id = id);
+            name !== null && (re.name = name);
+            value !== null && (re.value = value);
+            innerHTML !== null && (tag === "optgroup" ? re.label = innerHTML : re.appendChild(typeof innerHTML === "object" ? innerHTML : document.createTextNode(innerHTML)));
+            return re;
+        };
+
+        var updateTransactionMode = function() {
+            var currencyMap = {'localTransactionMode': 'localCurrency', 'foreignTransactionMode': 'foreignCurrency'};
+            for (var i = 0; i < arguments.length; i++) {
+                document.getElementById(arguments[i]).innerHTML = '';
+                var currentCurrency = document.getElementById(currencyMap[arguments[i]]).value;
+                for (var j in data['transactmode']) {
+                    if (data['transactmode'][j]['currency_code'] === currentCurrency) {
+                        document.getElementById(arguments[i]).appendChild(newDom("option", null, data['transactmode'][j]['name'], null, data['transactmode'][j]['id']));
+                    }
+                }
+            }
+        };
+
+        var getDirectionValue = function() {
+            var radio = document.getElementsByName("direction");
+            for (i = 0; i < radio.length; i++) {
+                if (radio[i].checked) {
+                    return radio[i].value;
+                }
+            }
+        };
+        
+        var updateExchangeRate = function() {
+            var foreignMoney = document.getElementById('foreignMoney').value, localMoney = document.getElementById('localMoney').value;
+            if (localMoney && foreignMoney) {
+                var tmpRate = parseFloat(localMoney) / parseFloat(foreignMoney) * 100;
+                document.getElementById('exchangeRate').value = tmpRate.toFixed(4);
+            }
+        };
+
+        var updatePreview = function() {
+            if (!document.getElementById('localMoney').value) {
+                document.getElementById('preview').innerHTML = `<hr /><p>操作预览</p><ul><li>无</li></ul>`;
+                return;
+            }
+
+            var localCurrency = document.getElementById('localCurrency').value,
+                foreignCurrency = document.getElementById('foreignCurrency').value,
+                localLoanUser = document.getElementById('localLoanUser').value,
+                foreignLoanUser = document.getElementById('foreignLoanUser').value,
+                localIsFrozen = document.getElementById('localIsFrozen').checked,
+                foreignIsFrozen = document.getElementById('foreignIsFrozen').checked,
+                localTransactionMode = data['transactmode'][document.getElementById('localTransactionMode').value]['name'],
+                foreignTransactionMode = data['transactmode'][document.getElementById('foreignTransactionMode').value]['name'],
+                localCurrencyName = data['currency'][localCurrency]['name'],
+                foreignCurrencyName = data['currency'][foreignCurrency]['name'],
+                localCurrencyCode = data['currency'][localCurrency]['code'],
+                foreignCurrencyCode = data['currency'][foreignCurrency]['code'],
+                localCurrencySymbol = data['currency'][localCurrency]['symbol'],
+                foreignCurrencySymbol = data['currency'][foreignCurrency]['symbol'],
+                localCurrencyUnitName = data['currency'][localCurrency]['unit_name'],
+                foreignCurrencyUnitName = data['currency'][foreignCurrency]['unit_name'],
+                localMoney = document.getElementById('localMoney').value,
+                foreignMoney = document.getElementById('foreignMoney').value,
+                exchangeRate = document.getElementById('exchangeRate').value,
+                fullyFormatedLocalMoney = `${localCurrencyName} ${localCurrencyCode} ${localCurrencySymbol}${localMoney} ${localCurrencyUnitName}`,
+                fullyFormatedForeignMoney = `${foreignCurrencyName} ${foreignCurrencyCode} ${foreignCurrencySymbol}${foreignMoney} ${foreignCurrencyUnitName}`,
+                simplyFormatedChineseLocalMoney = `${localMoney} ${localCurrencyUnitName}${localCurrencyName}`,
+                simplyFormatedChineseForeignMoney = `${foreignMoney} ${foreignCurrencyUnitName}${foreignCurrencyName}`,
+                simplyFormatedNonChineseLocalMoney = `${localCurrencySymbol}${localMoney} ${localCurrencyCode}`,
+                simplyFormatedNonChineseForeignMoney = `${foreignCurrencySymbol}${foreignMoney} ${foreignCurrencyCode}`,
+                fullyFormatedLocalNegativeMoney = `${localCurrencyName} ${localCurrencyCode} -${localCurrencySymbol}${localMoney} ${localCurrencyUnitName}`,
+                fullyFormatedForeignNegativeMoney = `${foreignCurrencyName} ${foreignCurrencyCode} -${foreignCurrencySymbol}${foreignMoney} ${foreignCurrencyUnitName}`,
+                simplyFormatedChineseLocalNegativeMoney = `-${localMoney} ${localCurrencyUnitName}${localCurrencyName}`,
+                simplyFormatedChineseForeignNegativeMoney = `-${foreignMoney} ${foreignCurrencyUnitName}${foreignCurrencyName}`,
+                simplyFormatedNonChineseLocalNegativeMoney = `-${localCurrencySymbol}${localMoney} ${localCurrencyCode}`,
+                simplyFormatedNonChineseForeignNegativeMoney = `-${localCurrencySymbol}${foreignMoney} ${foreignCurrencyCode}`;
+
+            var html = '<hr /><p>操作预览</p><ul>', command = [], direction = getDirectionValue();
+            
+            if (localCurrency === foreignCurrency) {
+                if (localLoanUser) {
+                    if (foreignLoanUser) {
+                        if (localLoanUser === foreignLoanUser) {
+                                if ((localIsFrozen || foreignIsFrozen) && !(localIsFrozen && foreignIsFrozen)) {
+                                    if (localIsFrozen) {
+                                        if (direction === 'withdrawal') {
+                                            command.push(`loan 表，${localLoanUser} 资金解冻，金额 ${fullyFormatedLocalMoney}，交易方式 ${localTransactionMode}，标记操作冻结资产`);
+                                            command.push(`loan 表，${localLoanUser} 资金解冻，金额 ${fullyFormatedLocalNegativeMoney}，交易方式 ${localTransactionMode}`);
+                                        } else if (direction === 'deposit') {
+                                            command.push(`loan 表，${localLoanUser} 资金冻结，金额 ${fullyFormatedLocalNegativeMoney}，交易方式 ${localTransactionMode}，标记操作冻结资产`);
+                                            command.push(`loan 表，${localLoanUser} 资金冻结，金额 ${fullyFormatedLocalMoney}，交易方式 ${localTransactionMode}`);
+                                        } else {
+                                            command.push(`同币种资金不支持外汇对敲操作`);
+                                        }
+                                    } else {
+                                        if (direction === 'withdrawal') {
+                                            command.push(`loan 表，${localLoanUser} 资金冻结，金额 ${fullyFormatedLocalNegativeMoney}，交易方式 ${localTransactionMode}，标记操作冻结资产`);
+                                            command.push(`loan 表，${localLoanUser} 资金冻结，金额 ${fullyFormatedLocalMoney}，交易方式 ${localTransactionMode}`);
+                                        } else if (direction === 'deposit') {
+                                            command.push(`loan 表，${localLoanUser} 资金解冻，金额 ${fullyFormatedLocalMoney}，交易方式 ${localTransactionMode}，标记操作冻结资产`);
+                                            command.push(`loan 表，${localLoanUser} 资金解冻，金额 ${fullyFormatedLocalNegativeMoney}，交易方式 ${localTransactionMode}`);
+                                        } else {
+                                            command.push(`同币种资金不支持外汇对敲操作`);
+                                        }
+                                    }
+                                } else {
+                                    command.push('同名债权人/债务人不支持在相同币种且相同状态资金下进行操作');
+                                }
+                        } else {
+                            if (direction === 'withdrawal') {
+                                command.push(`loan 表，${localLoanUser} 付款至 ${foreignLoanUser}，金额 ${fullyFormatedLocalNegativeMoney}，交易方式 ${localTransactionMode}${localIsFrozen ? '，标记操作冻结资产' : ''}`);
+                                command.push(`transactions 表，向 ${localLoanUser} 借出，金额 ${fullyFormatedLocalNegativeMoney}，交易方式 ${localTransactionMode}${localIsFrozen ? '，备注操作冻结资产' : ''}`);
+                                command.push(`loan 表，${foreignLoanUser} 请款自 ${localLoanUser}，金额 ${fullyFormatedLocalMoney}，交易方式 ${localTransactionMode}${foreignIsFrozen ? '，标记操作冻结资产' : ''}`);
+                                command.push(`transactions 表，自 ${foreignLoanUser} 贷入，金额 ${fullyFormatedLocalMoney}，交易方式 ${localTransactionMode}${foreignIsFrozen ? '，备注操作冻结资产' : ''}`);
+                            } else if (direction === 'deposit') {
+                                command.push(`loan 表，${localLoanUser} 请款自 ${foreignLoanUser}，金额 ${fullyFormatedLocalMoney}，交易方式 ${localTransactionMode}${localIsFrozen ? '，标记操作冻结资产' : ''}`);
+                                command.push(`transactions 表，自 ${localLoanUser} 贷入，金额 ${fullyFormatedLocalMoney}，交易方式 ${localTransactionMode}${localIsFrozen ? '，备注操作冻结资产' : ''}`);
+                                command.push(`loan 表，${foreignLoanUser} 付款至 ${localLoanUser}，金额 ${fullyFormatedLocalNegativeMoney}，交易方式 ${localTransactionMode}${foreignIsFrozen ? '，标记操作冻结资产' : ''}`);
+                                command.push(`transactions 表，向 ${foreignLoanUser} 借出，金额 ${fullyFormatedLocalNegativeMoney}，交易方式 ${localTransactionMode}${foreignIsFrozen ? '，备注操作冻结资产' : ''}`);
+                            } else {
+                                command.push(`同币种资金不支持外汇对敲操作`);
+                            }
+                        }
+                    } else {
+                        if (direction === 'withdrawal') {
+                            command.push(`loan 表，${localLoanUser} 还款，金额 ${fullyFormatedLocalMoney}，交易方式 ${foreignTransactionMode}${localIsFrozen ? '，标记操作冻结资产' : ''}`);
+                            command.push(`transactions 表，${localLoanUser} 还款，金额 ${fullyFormatedLocalMoney}，交易方式 ${foreignTransactionMode}${localIsFrozen ? '，备注操作冻结资产' : ''}`);
+                        } else if (direction === 'deposit') {
+                            command.push(`loan 表，${localLoanUser} 借款，金额 ${fullyFormatedLocalNegativeMoney}，交易方式 ${foreignTransactionMode}${localIsFrozen ? '，标记操作冻结资产' : ''}`);
+                            command.push(`transactions 表，${localLoanUser} 借款，金额 ${fullyFormatedLocalNegativeMoney}，交易方式 ${foreignTransactionMode}${localIsFrozen ? '，备注操作冻结资产' : ''}`);
+                        } else {
+                            command.push(`同币种资金不支持外汇对敲操作`);
+                        }
+                    }
+                } else {
+                    if (!foreignLoanUser) {
+                        command.push(`自有资金不支持互转操作`);
+                    } else {
+                        if (direction === 'deposit') {
+                            command.push(`loan 表，${foreignLoanUser} 还款，金额 ${fullyFormatedLocalMoney}，交易方式 ${localTransactionMode}${foreignIsFrozen ? '，标记操作冻结资产' : ''}`);
+                            command.push(`transactions 表，${foreignLoanUser} 还款，金额 ${fullyFormatedLocalMoney}，交易方式 ${localTransactionMode}${foreignIsFrozen ? '，备注操作冻结资产' : ''}`);
+                        } else if (direction === 'deposit') {
+                            command.push(`loan 表，${foreignLoanUser} 借款，金额 ${fullyFormatedLocalNegativeMoney}，交易方式 ${localTransactionMode}${foreignIsFrozen ? '，标记操作冻结资产' : ''}`);
+                            command.push(`transactions 表，${foreignLoanUser} 借款，金额 ${fullyFormatedLocalNegativeMoney}，交易方式 ${localTransactionMode}${foreignIsFrozen ? '，备注操作冻结资产' : ''}`);
+                        } else {
+                            command.push(`同币种资金不支持外汇对敲操作`);
+                        }
+                    }
+                }
+            } else {
+                if (!document.getElementById('foreignMoney').value) {
+                    document.getElementById('preview').innerHTML = `<hr /><p>操作预览</p><ul><li>无</li></ul>`;
+                    return;
+                }
+
+                if (localLoanUser) {
+                    if (foreignLoanUser) {
+                        if (direction === 'withdrawal') {
+                            command.push(`loan 表，${localLoanUser} 借款，购汇 ${simplyFormatedChineseForeignMoney} （汇率 ${foreignCurrencyCode} 100.0000 = ${localCurrencyCode} ${exchangeRate}），金额 ${fullyFormatedLocalNegativeMoney}，交易方式 ${localTransactionMode}${localIsFrozen ? '，标记操作冻结资产' : ''}`);
+                            command.push(`transactions 表，向 ${localLoanUser} 借出，金额 ${fullyFormatedLocalNegativeMoney}，交易方式 ${localTransactionMode}${localIsFrozen ? '，备注操作冻结资产' : ''}`);
+                            command.push(`loan 表，${localLoanUser} 还款，购汇 ${simplyFormatedChineseForeignMoney} （汇率 ${foreignCurrencyCode} 100.0000 = ${localCurrencyCode} ${exchangeRate}），金额 ${fullyFormatedForeignMoney}，交易方式 ${foreignTransactionMode}${foreignIsFrozen ? '，标记操作冻结资产' : ''}`);
+                            command.push(`transactions 表，自 ${localLoanUser} 贷入，金额 ${fullyFormatedForeignMoney}，交易方式 ${foreignTransactionMode}${foreignIsFrozen ? '，备注操作冻结资产' : ''}`);
+
+                            if (localLoanUser !== foreignLoanUser) {
+                                command.push(`loan 表，${localLoanUser} 付款至 ${foreignLoanUser}，金额 ${fullyFormatedForeignNegativeMoney}，交易方式 ${foreignTransactionMode}${foreignIsFrozen ? '，标记操作冻结资产' : ''}`);
+                                command.push(`transactions 表，向 ${localLoanUser} 借出，金额 ${fullyFormatedForeignNegativeMoney}，交易方式 ${foreignTransactionMode}${foreignIsFrozen ? '，备注操作冻结资产' : ''}`);
+                                command.push(`loan 表，${foreignLoanUser} 请款自 ${localLoanUser}，金额 ${fullyFormatedForeignMoney}，交易方式 ${foreignTransactionMode}${foreignIsFrozen ? '，标记操作冻结资产' : ''}`);
+                                command.push(`transactions 表，自 ${foreignLoanUser} 贷入，金额 ${fullyFormatedForeignMoney}，交易方式 ${foreignTransactionMode}${foreignIsFrozen ? '，备注操作冻结资产' : ''}`);
+                                
+                            }
+                        } else if (direction === 'deposit') {
+                            command.push(`loan 表，${foreignLoanUser} 借款，结汇 ${simplyFormatedChineseForeignMoney} （汇率 ${foreignCurrencyCode} 100.0000 = ${localCurrencyCode} ${exchangeRate}），金额 ${fullyFormatedForeignNegativeMoney}，交易方式 ${foreignTransactionMode}${foreignIsFrozen ? '，标记操作冻结资产' : ''}`);
+                            command.push(`transactions 表，向 ${foreignLoanUser} 借出，金额 ${fullyFormatedForeignNegativeMoney}，交易方式 ${foreignTransactionMode}${foreignIsFrozen ? '，备注操作冻结资产' : ''}`);
+                            command.push(`loan 表，${foreignLoanUser} 还款，结汇 ${simplyFormatedChineseForeignMoney} （汇率 ${foreignCurrencyCode} 100.0000 = ${localCurrencyCode} ${exchangeRate}），金额 ${fullyFormatedLocalMoney}，交易方式 ${localTransactionMode}${localIsFrozen ? '，标记操作冻结资产' : ''}`);
+                            command.push(`transactions 表，自 ${foreignLoanUser} 贷入，金额 ${fullyFormatedLocalMoney}，交易方式 ${localTransactionMode}${localIsFrozen ? '，备注操作冻结资产' : ''}`);
+
+                            if (localLoanUser !== foreignLoanUser) {
+                                command.push(`loan 表，${foreignLoanUser} 付款至 ${localLoanUser}，金额 ${fullyFormatedLocalNegativeMoney}，交易方式 ${localTransactionMode}${localIsFrozen ? '，标记操作冻结资产' : ''}`);
+                                command.push(`transactions 表，向 ${foreignLoanUser} 借出，金额 ${fullyFormatedLocalNegativeMoney}，交易方式 ${localTransactionMode}${localIsFrozen ? '，备注操作冻结资产' : ''}`);
+                                command.push(`loan 表，${localLoanUser} 请款自 ${foreignLoanUser}，金额 ${fullyFormatedLocalMoney}，交易方式 ${localTransactionMode}${localIsFrozen ? '，标记操作冻结资产' : ''}`);
+                                command.push(`transactions 表，自 ${localLoanUser} 贷入，金额 ${fullyFormatedLocalMoney}，交易方式 ${localTransactionMode}${localIsFrozen ? '，备注操作冻结资产' : ''}`);
+                            }
+                        } else {
+                            if (localLoanUser === foreignLoanUser) {
+                                command.push('同名债权人/债务人不支持进行外汇对敲操作');
+                            } else {
+                                command.push(`loan 表，${localLoanUser} 借款，购汇 ${simplyFormatedChineseForeignMoney} （汇率 ${foreignCurrencyCode} 100.0000 = ${localCurrencyCode} ${exchangeRate}），金额 ${fullyFormatedLocalNegativeMoney}，交易方式 ${localTransactionMode}${localIsFrozen ? '，标记操作冻结资产' : ''}`);
+                                command.push(`transactions 表，向 ${localLoanUser} 借出，金额 ${fullyFormatedLocalNegativeMoney}，交易方式 ${localTransactionMode}${localIsFrozen ? '，备注操作冻结资产' : ''}`);
+                                command.push(`loan 表，${foreignLoanUser} 还款，结汇 ${simplyFormatedChineseForeignMoney} （汇率 ${foreignCurrencyCode} 100.0000 = ${localCurrencyCode} ${exchangeRate}），金额 ${fullyFormatedLocalMoney}，交易方式 ${localTransactionMode}${localIsFrozen ? '，标记操作冻结资产' : ''}`);
+                                command.push(`transactions 表，向 ${foreignLoanUser} 借出，金额 ${fullyFormatedLocalMoney}，交易方式 ${localTransactionMode}${localIsFrozen ? '，备注操作冻结资产' : ''}`);
+                                command.push(`loan 表，${localLoanUser} 还款，购汇 ${simplyFormatedChineseForeignMoney} （汇率 ${foreignCurrencyCode} 100.0000 = ${localCurrencyCode} ${exchangeRate}），金额 ${fullyFormatedForeignMoney}，交易方式 ${foreignTransactionMode}${foreignIsFrozen ? '，标记操作冻结资产' : ''}`);
+                                command.push(`transactions 表，自 ${localLoanUser} 贷入，金额 ${fullyFormatedForeignMoney}，交易方式 ${foreignTransactionMode}${foreignIsFrozen ? '，备注操作冻结资产' : ''}`);
+                                command.push(`loan 表，${foreignLoanUser} 借款，结汇 ${simplyFormatedChineseForeignMoney} （汇率 ${foreignCurrencyCode} 100.0000 = ${localCurrencyCode} ${exchangeRate}），金额 ${fullyFormatedForeignNegativeMoney}，交易方式 ${foreignTransactionMode}${foreignIsFrozen ? '，标记操作冻结资产' : ''}`);
+                                command.push(`transactions 表，自 ${foreignLoanUser} 贷入，金额 ${fullyFormatedForeignNegativeMoney}，交易方式 ${foreignTransactionMode}${foreignIsFrozen ? '，备注操作冻结资产' : ''}`);
+                            }
+                        }
+                    } else {
+                        command.push('自有资金不支持进行跨币种交易');
+                    }
+                } else {
+                    command.push('自有资金不支持进行跨币种交易');
+                }
+            }
+
+            document.getElementById('preview').innerHTML = `${html}<li>${command.length ? command.join('</li><li>') : '无'}</li></ul>`;
+        };
+
+        window.onload = function() {
+            var currencyDoms = ['localCurrency', 'foreignCurrency'];
+            for (var i = 0; i < currencyDoms.length; i++) {
+                for (var j in data['currency']) {
+                    document.getElementById(currencyDoms[i]).appendChild(newDom("option", null, `${data['currency'][j]['name']} ${data['currency'][j]['code']}`, null, data['currency'][j]['code']));
+                }
+                document.getElementById(currencyDoms[i]).onchange = function() {
+                    var transactionModeDomMap = {'localCurrency': 'localTransactionMode', 'foreignCurrency': 'foreignTransactionMode'};
+                    updateTransactionMode(transactionModeDomMap[this.id]);
+                    
+                    if (document.getElementById('localCurrency').value !== document.getElementById('foreignCurrency').value) {
+                        document.getElementById('foreignMoneyP').style.display = 'block';
+                        document.getElementById('exchangeRateP').style.display = 'block';
+                        document.getElementById('exchangeRateLocalCurrency').innerHTML = document.getElementById('localCurrency').value;
+                        document.getElementById('exchangeRateForeignCurrency').innerHTML = document.getElementById('foreignCurrency').value;
+                        
+                        updatePreview();
+                        return;
+                    }
+
+                    updatePreview();
+                    document.getElementById('foreignMoneyP').style.display = 'none';
+                    document.getElementById('exchangeRateP').style.display = 'none';
+                };
+            }
+
+            updateTransactionMode('localTransactionMode', 'foreignTransactionMode');
+
+            var loanUserDoms = ['localLoanUser', 'foreignLoanUser'];
+            for (var i = 0; i < loanUserDoms.length; i++) {
+                for (var j = 0; j < data['loanUser'].length; j++) {
+                    document.getElementById(`${loanUserDoms[i]}Container`).appendChild(newDom("option", null, data['loanUser'][j], null, data['loanUser'][j]));
+                }
+                var tmpOptionDom = newDom("option", null, '新建', null, '');
+                tmpOptionDom.setAttribute('data-create', 'true');
+                document.getElementById(`${loanUserDoms[i]}Container`).appendChild(tmpOptionDom);
+
+                document.getElementById(loanUserDoms[i]).onchange = function() {
+                    var isFrozenDomMap = {'localLoanUser': 'localIsFrozenP', 'foreignLoanUser': 'foreignIsFrozenP'};
+                    document.getElementById(isFrozenDomMap[this.id]).style.display = (this.value !== '' ? 'block' : 'none');
+                    if (this.options[this.options.selectedIndex].getAttribute('data-create') === 'true') {
+                        document.getElementById(`${this.id}P`).innerHTML = '';
+                        var labelDom = newDom('label', null, '交易对象：');
+                        labelDom.appendChild(newDom('input', null, null, this.id, ''));
+                        document.getElementById(`${this.id}P`).appendChild(labelDom);
+                        document.getElementById(isFrozenDomMap[this.id]).style.display = 'block';
+                    }
+                    updatePreview();
+                };
+            }
+
+            var moneyDoms = ['localMoney', 'foreignMoney'];
+            for (var i = 0; i < moneyDoms.length; i++) {
+                document.getElementById(moneyDoms[i]).onblur = function() {
+                    var currencyMap = {'localMoney': 'localCurrency', 'foreignMoney': 'foreignCurrency'};
+                    var scale = data['currency'][document.getElementById(currencyMap[this.id]).value]['scale'];
+                    this.value = this.value.replace(/[^\d\.]/g, '').replace(/(\d)(\.)(\d*)(\2*)(\d*)/g, '$1$2$3$5');
+                    this.value = this.value ? parseFloat(this.value).toFixed(scale) : '';
+
+                    updateExchangeRate();
+                    updatePreview();
+                }
+            }
+
+            document.getElementsByName("direction").forEach(function() {
+                this.onchange = function() {
+                    updateExchangeRate();
+                    updatePreview();
+                };
+            });
+
+            document.getElementById('exchangeRate').onblur = function() {
+                var data = {};
+                this.value = this.value.replace(/[^\d\.]/g, '').replace(/(\d)(\.)(\d*)(\2*)(\d*)/g, '$1$2$3$5');
+                this.value = this.value ? parseFloat(this.value).toFixed(4) : '';
+                document.getElementById('foreignMoney').value = (document.getElementById('localMoney').value && this.value) ? parseFloat(document.getElementById('localMoney').value) / parseFloat(this.value) * 100 : '';
+                document.getElementById('foreignMoney').onblur();
+            };
+
+            var isFrozenDom = ['localIsFrozen', 'foreignIsFrozen'];
+            for (var i = 0; i < isFrozenDom.length; i++) {
+                document.getElementById(isFrozenDom[i]).onclick = updatePreview;
+            }
+        };
+    </script>
+{/block}

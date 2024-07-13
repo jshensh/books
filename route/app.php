@@ -20,6 +20,7 @@ Route::group(function() {
     Route::rule('currency$', 'Currency/index');
     Route::get('loan$', 'Loan/index');
     Route::post('loan/share$', 'Loan/share');
+    Route::rule('transfer$', 'Transfer/index');
 
     Route::group(function() {
 
@@ -27,7 +28,7 @@ Route::group(function() {
         Route::rule('accounts/:currency/$', 'Accounts/index');
         Route::get('accounts/:currency/chart$', 'Accounts/chart');
         Route::get('accounts/:currency/transactions$', 'Accounts/transactions');
-        Route::get('accounts/:currency/loan/:name', 'Loan/detail')->pattern(['name' => '.+']);
+        Route::rule('accounts/:currency/loan/:name', 'Loan/detail')->pattern(['name' => '.+']);
 
     })->middleware(app\middleware\CheckCurrencyExists::class);
     

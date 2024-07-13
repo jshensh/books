@@ -1,6 +1,6 @@
 {extend name="layout" /}
 
-{block name="title"}借款 - 账簿{/block}
+{block name="title"}借贷账目 - 账簿{/block}
 
 {block name="content"}
         <a href="{:url('/')->domain(true)}">< 返回首页</a>
@@ -84,7 +84,7 @@
                     lastName = dataName;
                 }
                 for (var dataCurrencyCode in loanData[dataName]) {
-                    var currencySymbol = `${currency[dataCurrencyCode].symbol ? (currency[dataCurrencyCode].symbol + ' ') : ''}`;
+                    var currencySymbol = currency[dataCurrencyCode].symbol;
                     var forzenAmountHtml = loanData[dataName][dataCurrencyCode]['frozenAmount'] ? `<br /><a href="{:url('/')->domain(true)}accounts/${dataCurrencyCode}/loan/${encodeURIComponent(dataName)}?is_frozen=1">（含${(parseFloat(loanData[dataName][dataCurrencyCode]['frozenAmount']) > 0 ? "贷入" : "借出")}冻结资金 ${currency[dataCurrencyCode]['name']} ${currencySymbol}${Math.abs(parseFloat(loanData[dataName][dataCurrencyCode]['frozenAmount'])).toFixed(currency[dataCurrencyCode]['scale'])} ${currency[dataCurrencyCode]['unit_name']}）</a>` : ''
                     toHtml += `<li><a href="{:url('/')->domain(true)}accounts/${dataCurrencyCode}/loan/${encodeURIComponent(dataName)}">${loanData[dataName][dataCurrencyCode]["minT"]} 起合计${(parseFloat(loanData[dataName][dataCurrencyCode]["all"]) > 0 ? "贷入" : "借出")} ${currency[dataCurrencyCode]['name']} ${currencySymbol}${Math.abs(parseFloat(loanData[dataName][dataCurrencyCode]["all"])).toFixed(currency[dataCurrencyCode]['scale'])} ${currency[dataCurrencyCode]['unit_name']}</a>${forzenAmountHtml}</li>`;
                     if (typeof sumMoney[currency[dataCurrencyCode]['code']] === 'undefined') {

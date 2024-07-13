@@ -115,7 +115,7 @@
                 var incomeSum=Math.round(incomeArr.sum(min,max)*100)/100;
                 var expendSum=Math.round(expendArr.sum(min,max)*100)/100;
                 var allSum=Math.round((incomeSum-expendSum)*100)/100;
-                var currencySymbol = `${currency.symbol ? (currency.symbol + ' ') : ''}`;
+                var currencySymbol = `${currency.symbol}`;
                 $("#result").html(
                     `<p style="margin: 0;">\
 ${new Date(yezs[min][0]).Format("yyyy-MM-dd")} 至 ${new Date(yezs[max][0]).Format("yyyy-MM-dd")}<br />\

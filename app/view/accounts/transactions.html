@@ -22,7 +22,7 @@
                 transactions = data['transactions'],
                 transactMode = {},
                 mode = data['mode'];
-            var currencySymbol = `${data.currency.symbol ? (data.currency.symbol + ' ') : ''}`;
+            var currencySymbol = `${data.currency.symbol}`;
             for (var i = 0 ; i < transactModeTmp.length; i++) {
                 transactMode[transactModeTmp[i]["id"]] = transactModeTmp[i]["name"];
             }
