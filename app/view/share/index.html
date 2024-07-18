@@ -63,7 +63,7 @@
             }
 
             for (var dataCurrencyCode in loanData) {
-                var currencySymbol = `${currency[dataCurrencyCode].symbol ? (currency[dataCurrencyCode].symbol + ' ') : ''}`;
+                var currencySymbol = currency[dataCurrencyCode].symbol;
                 var forzenAmountHtml = loanData[dataCurrencyCode]['frozenAmount'] ? `<br /><a href="{:url('/')->domain(true)}share/${encodeURIComponent(token)}/${dataCurrencyCode}/?is_frozen=1">（含${(parseFloat(loanData[dataCurrencyCode]['frozenAmount']) > 0 ? "贷出" : "借入")}冻结资金 ${currency[dataCurrencyCode]['name']} ${currencySymbol}${Math.abs(parseFloat(loanData[dataCurrencyCode]['frozenAmount'])).toFixed(currency[dataCurrencyCode]['scale'])} ${currency[dataCurrencyCode]['unit_name']}）</a>` : ''
                 toHtml += `<li><a href="{:url('/')->domain(true)}share/${encodeURIComponent(token)}/${dataCurrencyCode}">${loanData[dataCurrencyCode]["minT"]} 起合计${(parseFloat(loanData[dataCurrencyCode]["all"]) > 0 ? "贷出" : "借入")} ${currency[dataCurrencyCode]['name']} ${currencySymbol}${Math.abs(parseFloat(loanData[dataCurrencyCode]["all"])).toFixed(currency[dataCurrencyCode]['scale'])} ${currency[dataCurrencyCode]['unit_name']}</a>${forzenAmountHtml}</li>`;
                 if (typeof sumMoney[currency[dataCurrencyCode]['code']] === 'undefined') {
@@ -75,7 +75,7 @@
             toHtml += '</ul>';
             var sumHtml = [];
             for (var i in sumMoney) {
-                var currencySymbol = `${currency[i].symbol ? (currency[i].symbol + ' ') : ''}`;
+                var currencySymbol = currency[i].symbol;
                 sumHtml.push(`${(parseFloat(sumMoney[i]) > 0 ? "贷出" : "借入")} ${currency[i]['name']} ${currencySymbol}${Math.abs(parseFloat(sumMoney[i])).toFixed(currency[dataCurrencyCode]['scale'])} ${currency[i]['unit_name']}`);
             }
             document.getElementById('allList').innerHTML = toHtml + `<p>共计${sumHtml.join('，')}</p>`;
