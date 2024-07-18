@@ -18,7 +18,7 @@ class Auth
             throw new \think\Exception();
         }
 
-        if ($pass === $configPass) {
+        if (password_verify($pass, $configPass)) {
             Session::set('logined', 1);
             return true;
         }
