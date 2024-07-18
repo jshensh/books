@@ -32,7 +32,7 @@ class Loan extends BaseController
 
         if (!Auth::isLogined()) {
             $key = Config::get('system.loanshare_key');
-            $name = UcAuthCode::decode($token, $key, true);
+            $name = UcAuthCode::decode(urldecode($token), $key, true);
 
             if (!$name) {
                 View::assign('errmsg', '无法访问指定账单，请联系您的债权（债务）人重新获取链接');
@@ -103,7 +103,7 @@ class Loan extends BaseController
             }
         } else {
             $key = Config::get('system.loanshare_key');
-            $name = UcAuthCode::decode($token, $key, true);
+            $name = UcAuthCode::decode(urldecode($token), $key, true);
 
             if (!$name) {
                 View::assign('errmsg', '无法访问指定账单，请联系您的债权（债务）人重新获取链接');
@@ -152,7 +152,7 @@ class Loan extends BaseController
                     return json(["status" => "error"]);
                 }
                 $token = urlencode(UcAuthCode::encode($request->post('name'), $key, $shareTime * 60));
-                return json(["status" => "success", "link" => $request->root(true) . "/share/{$token}"]);
+                return json(["status" => "success", "link" => $request->root(true) . "/share/" . urlencode($token)]);
             }
         }
         
@@ -162,7 +162,7 @@ class Loan extends BaseController
     public function transfer($token = '', Request $request)
     {
         $key = Config::get('system.loanshare_key');
-        $name = UcAuthCode::decode($token, $key, true);
+        $name = UcAuthCode::decode(urldecode($token), $key, true);
 
         if (!$name) {
             View::assign('errmsg', '无法访问指定账单，请联系您的债权（债务）人重新获取链接');
