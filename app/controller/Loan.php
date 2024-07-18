@@ -151,7 +151,7 @@ class Loan extends BaseController
         View::assign('isFrozen', (int) (bool) $request->get('is_frozen', ''));
 
         if (!Auth::isLogined()) {
-            return View::fetch('shareDetail');
+            return View::fetch('/share/detail');
         }
         return View::fetch();
     }
