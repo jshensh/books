@@ -12,6 +12,7 @@ use think\facade\Route;
 
 Route::pattern([
     'currency' => '[a-zA-Z\(\)]+',
+    'token'    => '[^/]+',
 ]);
 
 Route::group(function() {
@@ -25,7 +26,7 @@ Route::group(function() {
     Route::group(function() {
 
         Route::rule('transactmode/:currency', 'Transactmode/index');
-        Route::rule('accounts/:currency/$', 'Accounts/index');
+        Route::rule('accounts/:currency', 'Accounts/index');
         Route::get('accounts/:currency/chart$', 'Accounts/chart');
         Route::get('accounts/:currency/transactions$', 'Accounts/transactions');
         Route::rule('accounts/:currency/loan/:name', 'Loan/detail')->pattern(['name' => '.+']);
@@ -35,5 +36,6 @@ Route::group(function() {
 })->middleware(app\middleware\Auth::class);
 
 Route::rule('login', 'login/index');
-Route::get('share/:token/:currency/', 'loan/detail')->pattern(['token' => '.+']);
-Route::get('share/:token', 'loan/index')->pattern(['token' => '.+']);
+Route::rule('share/:token/transfer', 'loan/transfer');
+Route::get('share/:token/:currency', 'loan/detail');
+Route::get('share/:token', 'loan/index');

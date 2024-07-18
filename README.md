@@ -42,4 +42,21 @@ ALTER TABLE `transactmode` ADD `currency_code` VARCHAR(10) NOT NULL AFTER `id`;
 
 ALTER TABLE `loan` CHANGE `money` `money` DECIMAL(20,8) NOT NULL;
 ALTER TABLE `loan` ADD `is_frozen` TINYINT UNSIGNED NOT NULL DEFAULT '0' AFTER `money`;
+
+--
+-- 表 `transfer_request`
+--
+
+CREATE TABLE `transfer_request` (
+  `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT,
+  `loan_name_from` varchar(60) NOT NULL DEFAULT '',
+  `loan_name_to` varchar(60) NOT NULL DEFAULT '',
+  `txt` text NOT NULL,
+  `currency_code` varchar(10) NOT NULL,
+  `money` decimal(20,8) UNSIGNED NOT NULL,
+  `status` tinyint(1) UNSIGNED NOT NULL COMMENT '[0 => 待审核, 1 => 已通过, 2 => 已拒绝]',
+  `created_at` datetime NOT NULL DEFAULT current_timestamp(),
+  `updated_at` datetime DEFAULT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=MyISAM DEFAULT CHARSET=utf8mb4;
 ```

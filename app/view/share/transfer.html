@@ -1,0 +1,119 @@
+{extend name="layout" /}
+
+{block name="title"}管理请款申请 - 账簿{/block}
+
+{block name="content"}
+        <p id="msg" style="display: none;"></p>
+        <form action="" method="post">
+            <p id="loanNameP"><label for="loanName">交易对象：</label><select name="loanName" id="loanName"></select></p>
+            <p><label for="currency">交易币种：</label><select name="currency" id="currency"></select></p>
+            <p><label>请款金额：<input type="text" name="money" id="money" /></label></p>
+            <p><label>请款理由：<input type="text" name="txt" id="txt" /></label></p>
+            <p><input type="submit" name="send" id="send" value="提交" /></p>
+        </form>
+        <hr />
+        <div id="allList"></div>
+{/block}
+
+{block name="css"}
+    <style>
+        p {
+            margin: 5px 0
+        }
+        
+        ul {
+            margin: 5px 0;
+        }
+
+        ul li {
+            padding-top: 5px;
+        }
+
+        ul li:first-child {
+            padding-top: 0;
+        }
+    </style>
+{/block}
+
+{block name="javascript"}
+    <script>
+        var data = {:json_encode($data, JSON_UNESCAPED_UNICODE)};
+        console.log(data);
+
+        var newDom = function(tag, id, innerHTML, name, value) {
+            var re = document.createElement(tag);
+            id !== null && (re.id = id);
+            name !== null && (re.name = name);
+            value !== null && (re.value = value);
+            innerHTML !== null && (tag === "optgroup" ? re.label = innerHTML : re.appendChild(typeof innerHTML === "object" ? innerHTML : document.createTextNode(innerHTML)));
+            return re;
+        };
+
+        var formatMoney = function() {
+            var dom = document.getElementById('money');
+            var scale = data['currency'][document.getElementById('currency').value]['scale'];
+            dom.value = dom.value.replace(/[^\d\.]/g, '').replace(/(\d)(\.)(\d*)(\2*)(\d*)/g, '$1$2$3$5');
+            dom.value = dom.value ? parseFloat(dom.value).toFixed(scale) : '';
+        };
+        
+        window.onload = function() {
+            var msg = data['msg'];
+            if (msg) {
+                document.getElementById('msg').innerHTML = `${msg}<hr/ >`;
+                document.getElementById('msg').style["display"] = "block";
+            }
+
+            for (var j = 0; j < data['loanUser'].length; j++) {
+                document.getElementById('loanName').appendChild(newDom("option", null, data['loanUser'][j], null, data['loanUser'][j]));
+            }
+            var tmpOptionDom = newDom("option", null, '新建', null, '');
+            tmpOptionDom.setAttribute('data-create', 'true');
+            document.getElementById('loanName').appendChild(tmpOptionDom);
+
+            document.getElementById('loanName').addEventListener('change', function() {
+                if (this.options[this.options.selectedIndex].getAttribute('data-create') === 'true') {
+                    document.getElementById('loanNameP').innerHTML = '';
+                    var labelDom = newDom('label', null, '交易对象：');
+                    labelDom.appendChild(newDom('input', null, null, this.id, ''));
+                    document.getElementById('loanNameP').appendChild(labelDom);
+                }
+            });
+
+            for (var j in data['currency']) {
+                document.getElementById('currency').appendChild(newDom("option", null, `${data['currency'][j]['name']} ${data['currency'][j]['code']}`, null, data['currency'][j]['code']));
+            }
+
+            document.getElementById('currency').addEventListener('change', formatMoney);
+            document.getElementById('money').addEventListener('blur', formatMoney);
+
+            if (!data['dataCount']) {
+                document.getElementById('allList').innerHTML = '<p>无历史记录</p>';
+                return;
+            }
+
+            if (data['page'] > 1 && data['dataCount'] && !data['data'].length) {
+                window.location.href = window.location.pathname;
+                return;
+            }
+
+            var listHtml = '<p>历史记录：</p><ul>';
+            for (var i = 0; i < data['data'].length; i++) {
+                var updateTime = `<br /><b>审核时间</b>：${data['data'][i]['updated_at']}`;
+                listHtml += `<li><b>交易对象</b>：${data['data'][i]['loan_name_to']}<br /><b>请款理由</b>：${data['data'][i]['txt'] ? data['data'][i]['txt'] : '<i>无</i>'}<br /><b>交易币种</b>：${data['data'][i]['currency_code']}<br /><b>请款金额</b>：${parseFloat(data['data'][i]['money']).toFixed(data['currency'][data['data'][i]['currency_code']]['scale'])}<br /><b>申请状态</b>：${(['待审核', '已入账', '已拒绝'])[data['data'][i]['status']]}<br /><b>申请时间</b>：${data['data'][i]['created_at']}${data['data'][i]['updated_at'] ? updateTime : ''}</li>`
+            }
+            listHtml += '</ul>';
+
+            var navbar = '';
+            if (data['page'] > 1) {
+                navbar += `<a href="?page=${data['page'] - 1}">上一页</a>`;
+            }
+            if (data['page'] * data['offset'] < data['dataCount']) {
+                navbar += `${navbar ? '&nbsp;' : ''}<a href="?page=${data['page'] + 1}">下一页</a>`;
+            }
+
+            listHtml += navbar ? `<p>${navbar}</p>` : '';
+
+            document.getElementById('allList').innerHTML = listHtml;
+        };
+    </script>
+{/block}

@@ -12,6 +12,7 @@ use app\model\Currency as CurrencyModel;
 use app\model\Loan as LoanModel;
 use app\model\Transactmode as TransactmodeModel;
 use app\model\Transactions as TransactionsModel;
+use app\model\TransferRequest as TransferRequestModel;
 
 class Loan extends BaseController
 {
@@ -61,33 +62,16 @@ class Loan extends BaseController
         return View::fetch();
     }
 
-    public function share($name = '', Request $request)
-    {
-        if ($request->post('shareTime') && $request->post('name')) {
-            $shareTime = $request->post('shareTime');
-            if (is_numeric($shareTime) && $shareTime > 0) {
-                $key = Config::get('system.loanshare_key');
-                if (!$key) {
-                    return json(["status" => "error"]);
-                }
-                $token = urlencode(UcAuthCode::encode($request->post('name'), $key, $shareTime * 60));
-                return json(["status" => "success", "link" => $request->root(true) . "/share/{$token}"]);
-            }
-        }
-        
-        return json(["status" => "error"]);
-    }
-
     public function detail($currency, $name = '', $token = '', Request $request)
     {
-        $currency = CurrencyModel::find($currency);
-        $decimal = 'decimal(' . (20 - $currency->scale) . ',' . $currency->scale . ')';
-        
         if (Auth::isLogined()) {
             if (!$name) {
                 return redirect(url('/loan')->domain(true));
             }
 
+            $currency = CurrencyModel::find($currency);
+            $decimal = 'decimal(' . (20 - $currency->scale) . ',' . $currency->scale . ')';
+        
             if ($request->post('delete') === 'true') {
                 $sum = LoanModel::join('transactmode', 'transactmode.id = loan.transactmode_id')
                     ->where('loan.name', '=', $name)
@@ -127,6 +111,8 @@ class Loan extends BaseController
             }
 
             $name = $name[0];
+            $currency = CurrencyModel::find($currency);
+            $decimal = 'decimal(' . (20 - $currency->scale) . ',' . $currency->scale . ')';
         }
 
         $data = LoanModel::withJoin('transactmode')
@@ -154,5 +140,105 @@ class Loan extends BaseController
             return View::fetch('/share/detail');
         }
         return View::fetch();
+    }
+
+    public function share(Request $request)
+    {
+        if ($request->post('shareTime') && $request->post('name')) {
+            $shareTime = $request->post('shareTime');
+            if (is_numeric($shareTime) && $shareTime > 0) {
+                $key = Config::get('system.loanshare_key');
+                if (!$key) {
+                    return json(["status" => "error"]);
+                }
+                $token = urlencode(UcAuthCode::encode($request->post('name'), $key, $shareTime * 60));
+                return json(["status" => "success", "link" => $request->root(true) . "/share/{$token}"]);
+            }
+        }
+        
+        return json(["status" => "error"]);
+    }
+
+    public function transfer($token = '', Request $request)
+    {
+        $key = Config::get('system.loanshare_key');
+        $name = UcAuthCode::decode($token, $key, true);
+
+        if (!$name) {
+            View::assign('errmsg', '无法访问指定账单，请联系您的债权（债务）人重新获取链接');
+            return View::fetch('/error');
+        }
+
+        $name = $name[0];
+
+        $msg = null;
+        if ($request->isPost()) {
+            try {
+                $params = $request->post();
+
+                if (!isset($params['loanName']) || !isset($params['currency']) || !isset($params['money'])) {
+                    throw new \Exception('请求漏参');
+                }
+
+                $params['loanName'] = trim($params['loanName']);
+
+                $currency = CurrencyModel::find($params['currency']);
+                if (!$currency) {
+                    throw new \Exception('交易币种输入错误');
+                }
+
+                $params['money'] = number_format((float) $params['money'], $currency->scale, ".", "");
+                if (bccomp($params['money'], '99999999999.99999999', $currency->scale) > 0) {
+                    throw new \Exception('请款金额过大');
+                }
+                if (bccomp($params['money'], number_format(pow(0.1, $currency->scale), $currency->scale, ".", ""), $currency->scale) < 0) {
+                    throw new \Exception('请款金额过小');
+                }
+
+                if ($name === $params['loanName']) {
+                    throw new \Exception('不能向自己请款');
+                }
+
+                if (TransferRequestModel::where('loan_name_from', '=', $name)->where('status', '=', 0)->count() >= 5) {
+                    throw new \Exception('待审核的请款请求已有五个');
+                }
+
+                $params['txt'] = substr(strip_tags(trim($params['txt'] ?? '')), 0, 255);
+
+                $row = (new TransferRequestModel)->save([
+                    'loan_name_from' => $name,
+                    'loan_name_to'   => $params['loanName'],
+                    'txt'            => $params['txt'],
+                    'currency_code'  => $params['currency'],
+                    'money'          => $params['money'],
+                    'status'         => 0
+                ]);
+                $msg = '提交成功';
+            } catch (\Exception $e) {
+                $msg = "提交失败，{$e->getMessage()}";
+            }
+        }
+
+        $page = (int) $request->get('page');
+        $page = $page <= 0 ? 1 : $page;
+
+        $offset = 10;
+
+        $dataCount = TransferRequestModel::where('loan_name_from', '=', $name)->count();
+        $data = TransferRequestModel::where('loan_name_from', '=', $name)
+            ->order('id', 'desc')
+            ->limit(($page - 1) * $offset, $offset)
+            ->select();
+        
+        View::assign('data', [
+            'data'      => $data,
+            'dataCount' => $dataCount,
+            'page'      => $page,
+            'offset'    => $offset,
+            'loanUser'  => LoanModel::distinct('name')->where('name', '<>', $name)->column('name'),
+            'currency'  => CurrencyModel::column('*', 'code'),
+            'msg'       => $msg
+        ]);
+        return View::fetch('/share/transfer');
     }
 }
