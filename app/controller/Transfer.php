@@ -111,8 +111,8 @@ class Transfer extends BaseController
 
                 if ($action === 'accept') {
                     if (!(
-                        $dbData->insertNew("{$transactmode}_0", "{$row->loan_name_from} 付款至 {$row->loan_name_to}{$txt}", $row->money, $row->loan_name_from, 0) &&
-                        $dbData->insertNew("0_{$transactmode}", "{$row->loan_name_to} 请款自 {$row->loan_name_from}{$txt}", $row->money, $row->loan_name_to, 0)
+                        $dbData->insertNew("{$transactmode}_0", "付款至 {$row->loan_name_to}{$txt}", $row->money, $row->loan_name_from, 0) &&
+                        $dbData->insertNew("0_{$transactmode}", "请款自 {$row->loan_name_from}{$txt}", $row->money, $row->loan_name_to, 0)
                     )) {
                         throw new \Exception('未知错误');
                     }
