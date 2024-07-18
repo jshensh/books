@@ -60,7 +60,7 @@ class ResetPassword extends Command
         }
 
         if (!$password) {
-            $output->writeln('passwd: password is unchanged');
+            $output->writeln('password is unchanged');
             exit();
         }
 
@@ -72,7 +72,7 @@ class ResetPassword extends Command
 
         if ($password !== $password2) {
             $output->writeln('Passwords don\'t match');
-            $output->writeln('passwd: password is unchanged');
+            $output->writeln('password is unchanged');
             exit();
         }
 
@@ -86,6 +86,6 @@ class ResetPassword extends Command
 
         array_map('unlink', glob(app()->getRootPath() . '/runtime/session/sess_*'));
 
-        $output->writeln('passwd: password is changed');
+        $output->writeln('password is changed');
     }
 }

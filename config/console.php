@@ -5,6 +5,7 @@
 return [
     // 指令定义
     'commands' => [
-        \app\command\ResetPassword::class
+        \app\command\ResetPassword::class,
+        \app\command\ResetLoanShareKey::class,
     ],
 ];
