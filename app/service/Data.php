@@ -240,7 +240,15 @@ class Data
 
             // 提交事务
             Db::commit();
-            return ['insertIds' => $insertIds, 'originTodayStatementData' => $originTodayStatementData, 't' => $t, 'currency' => $currencyInfo[0]->code];
+            return [
+                'insertIds' => $insertIds,
+                'originTodayStatementData' => [
+                    $currencyInfo[0]->code => [
+                        'data' => $originTodayStatementData,
+                        't'    => $t
+                    ]
+                ]
+            ];
         } catch (\Exception $e) {
             dump('Line ' . $e->getLine() . ': ' . $e->getMessage() . "\n" . $e->getTraceAsString());
             // 回滚事务
@@ -291,7 +299,9 @@ class Data
         try {
             Loan::where('id', 'in', $data['insertIds']['loan'])->delete();
             Transactions::where('id', 'in', $data['insertIds']['transactions'])->delete();
-            Statements::where('currency_code', '=', $data['currency'])->where('t', '=', strtotime(date('Y-m-d', $data['t'])))->update($data['originTodayStatementData']);
+            foreach ($data['originTodayStatementData'] as $currency => $originTodayStatementData) {
+                Statements::where('currency_code', '=', $currency)->where('t', '=', strtotime(date('Y-m-d', $originTodayStatementData['t'])))->update($originTodayStatementData['data']);
+            }
 
             // 提交事务
             Db::commit();

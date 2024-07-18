@@ -14,6 +14,6 @@ class Loan extends Model
 
     public function transactmode()
     {
-        return $this->belongsTo('Transactmode')->field(['id', 'name as transactmode_name'])->bind(['transactmode_name']);
+        return $this->belongsTo(\app\model\Transactmode::class);
     }
 }

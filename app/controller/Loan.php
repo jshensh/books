@@ -130,7 +130,7 @@ class Loan extends BaseController
         }
 
         $data = LoanModel::withJoin('transactmode')
-            ->field(['loan.id', 'loan.name', 'loan.transactmode_id', "cast(loan.money as {$decimal}) as money", 'loan.is_frozen', 'loan.txt', 'loan.t'])
+            ->field(['loan.id', 'loan.name', 'loan.transactmode_id', 'transactmode.name as transactmode_name', "cast(loan.money as {$decimal}) as money", 'loan.is_frozen', 'loan.txt', 'loan.t'])
             ->where('transactmode.currency_code', '=', $currency->code)
             ->where('loan.is_frozen', '=', (int) (bool) $request->get('is_frozen', ''))
             ->where('loan.name', '=', $name)
