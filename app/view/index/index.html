@@ -14,7 +14,7 @@
         账簿列表：
         <ul>
         {foreach $currencySum as $row}
-            <li>{$row['name']} {$row['code']}，余额 {$row['symbol']}{:rtrim(substr($row['amount'], 0, $row['scale'] - 8), '.')} {$row['unit_name']}<br />　<a href="{:url('/accounts/' . $row['code'])->domain(true)}">管理账目</a>　<a href="{:url('/transactmode/' . $row['code'])->domain(true)}">编辑交易方式</a>
+            <li>{$row['name']} {$row['code']}，余额 {$row['symbol']}{:rtrim(substr($row['amount'], 0, $row['scale'] - 8), '.')} {$row['unit_name']}<br />　<a href="{:url('/accounts/' . $row['code'])->domain(true)}/">管理账目</a>　<a href="{:url('/transactmode/' . $row['code'])->domain(true)}">编辑交易方式</a>
         {/foreach}
         </ul>
         操作：

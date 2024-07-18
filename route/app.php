@@ -30,7 +30,7 @@ Route::group(function() {
         Route::rule('accounts/:currency/loan/:name', 'Loan/detail')->pattern(['name' => '.+']);
         Route::get('accounts/:currency/chart$', 'Accounts/chart');
         Route::get('accounts/:currency/transactions$', 'Accounts/transactions');
-        Route::rule('accounts/:currency', 'Accounts/index');
+        Route::rule('accounts/:currency/', 'Accounts/index');
 
     })->middleware(app\middleware\CheckCurrencyExists::class);
     
