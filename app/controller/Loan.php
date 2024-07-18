@@ -199,15 +199,15 @@ class Loan extends BaseController
                     throw new \Exception('不能向自己请款');
                 }
 
-                if (TransferRequestModel::where('loan_name_from', '=', $name)->where('status', '=', 0)->count() >= 5) {
+                if (TransferRequestModel::where('loan_name_to', '=', $name)->where('status', '=', 0)->count() >= 5) {
                     throw new \Exception('待审核的请款请求已有五个');
                 }
 
                 $params['txt'] = substr(strip_tags(trim($params['txt'] ?? '')), 0, 255);
 
                 $row = (new TransferRequestModel)->save([
-                    'loan_name_from' => $name,
-                    'loan_name_to'   => $params['loanName'],
+                    'loan_name_to'   => $name,
+                    'loan_name_from' => $params['loanName'],
                     'txt'            => $params['txt'],
                     'currency_code'  => $params['currency'],
                     'money'          => $params['money'],
@@ -224,21 +224,24 @@ class Loan extends BaseController
 
         $offset = 10;
 
-        $dataCount = TransferRequestModel::where('loan_name_from', '=', $name)->count();
-        $data = TransferRequestModel::where('loan_name_from', '=', $name)
+        $dataCount = TransferRequestModel::where('loan_name_to', '=', $name)->count();
+        $data = TransferRequestModel::where('loan_name_to', '=', $name)
             ->order('id', 'desc')
             ->limit(($page - 1) * $offset, $offset)
             ->select();
         
-        View::assign('data', [
-            'data'      => $data,
-            'dataCount' => $dataCount,
-            'page'      => $page,
-            'offset'    => $offset,
-            'loanUser'  => LoanModel::distinct('name')->where('name', '<>', $name)->column('name'),
-            'currency'  => CurrencyModel::column('*', 'code'),
-            'msg'       => $msg
-        ]);
+        View::assign(
+            'data',
+            [
+                'data'      => $data,
+                'dataCount' => $dataCount,
+                'page'      => $page,
+                'offset'    => $offset,
+                'loanUser'  => LoanModel::distinct('name')->where('name', '<>', $name)->column('name'),
+                'currency'  => CurrencyModel::column('*', 'code'),
+                'msg'       => $msg
+            ]
+        );
         return View::fetch('/share/transfer');
     }
 }

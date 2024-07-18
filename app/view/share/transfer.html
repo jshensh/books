@@ -38,7 +38,6 @@
 {block name="javascript"}
     <script>
         var data = {:json_encode($data, JSON_UNESCAPED_UNICODE)};
-        console.log(data);
 
         var newDom = function(tag, id, innerHTML, name, value) {
             var re = document.createElement(tag);
@@ -99,7 +98,7 @@
             var listHtml = '<p>历史记录：</p><ul>';
             for (var i = 0; i < data['data'].length; i++) {
                 var updateTime = `<br /><b>审核时间</b>：${data['data'][i]['updated_at']}`;
-                listHtml += `<li><b>交易对象</b>：${data['data'][i]['loan_name_to']}<br /><b>请款理由</b>：${data['data'][i]['txt'] ? data['data'][i]['txt'] : '<i>无</i>'}<br /><b>交易币种</b>：${data['data'][i]['currency_code']}<br /><b>请款金额</b>：${parseFloat(data['data'][i]['money']).toFixed(data['currency'][data['data'][i]['currency_code']]['scale'])}<br /><b>申请状态</b>：${(['待审核', '已入账', '已拒绝'])[data['data'][i]['status']]}<br /><b>申请时间</b>：${data['data'][i]['created_at']}${data['data'][i]['updated_at'] ? updateTime : ''}</li>`
+                listHtml += `<li><b>交易对象</b>：${data['data'][i]['loan_name_from']}<br /><b>请款理由</b>：${data['data'][i]['txt'] ? data['data'][i]['txt'] : '<i>无</i>'}<br /><b>交易币种</b>：${data['currency'][data['data'][i]['currency_code']]['name']} ${data['data'][i]['currency_code']}<br /><b>请款金额</b>：${parseFloat(data['data'][i]['money']).toFixed(data['currency'][data['data'][i]['currency_code']]['scale'])}<br /><b>申请状态</b>：${(['<span style="color: blue">待审核</span>', '<span style="color: green">已入账</span>', '<span style="color: red">已拒绝</span>'])[data['data'][i]['status']]}<br /><b>申请时间</b>：${data['data'][i]['created_at']}${data['data'][i]['updated_at'] ? updateTime : ''}</li>`
             }
             listHtml += '</ul>';
 

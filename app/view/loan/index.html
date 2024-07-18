@@ -36,7 +36,7 @@
                 url: `{:url('/loan/share')}`,
                 dataType: 'json',
                 timeout: 5000,
-                data: {"shareTime": prompt(`您正在分享 ${name} 的所有账目，请输入链接有效时长（分钟）：`,"30"), "path": location.origin+location.pathname.match(/.*\//), 'name': name},
+                data: {"shareTime": prompt(`您正在分享 ${name} 的所有账目，请输入链接有效时长（分钟）：`,"52597440"), "path": location.origin+location.pathname.match(/.*\//), 'name': name},
                 success: function(re) {
                     if (re["status"]==="success") {
                         prompt("复制以下链接",re["link"]);

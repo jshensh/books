@@ -11,6 +11,7 @@ use app\model\Currency as CurrencyModel;
 use app\model\Transactions as TransactionsModel;
 use app\model\Transactmode as TransactmodeModel;
 use app\model\Loan as LoanModel;
+use app\model\TransferRequest as TransferRequestModel;
 
 class Transfer extends BaseController
 {
@@ -78,6 +79,70 @@ class Transfer extends BaseController
                 'loanUser'       => LoanModel::distinct('name')->column('name'),
                 'msg'            => $msg,
                 'originPostData' => $originPostData,
+            ]
+        );
+        return View::fetch();
+    }
+
+    public function request(Request $request, DataService $dbData)
+    {
+        $msg = null;
+
+        if ($request->isPost()) {
+            try {
+                $id = $request->post('id');
+                $action = $request->post('action');
+
+                $row = TransferRequestModel::find($id);
+                if (!$row) {
+                    throw new \Exception("找不到需要操作的请款申请");
+                }
+
+                $transactmode = TransactmodeModel::where('currency_code', '=', $row->currency_code)->order('id')->value('id');
+                if (!$transactmode) {
+                    throw new \Exception("找不到 {$row->currency_code} 的可用交易方式");
+                }
+
+                $row->status = ($action === 'accept' ? 1 : 2);
+                $row->updated_at = date('Y-m-d H:i:s');
+                $row->save();
+
+                $txt = $row->txt ? "（{$row->txt}）" : '';
+
+                if ($action === 'accept') {
+                    if (!(
+                        $dbData->insertNew("{$transactmode}_0", "{$row->loan_name_from} 付款至 {$row->loan_name_to}{$txt}", $row->money, $row->loan_name_from, 0) &&
+                        $dbData->insertNew("0_{$transactmode}", "{$row->loan_name_to} 请款自 {$row->loan_name_from}{$txt}", $row->money, $row->loan_name_to, 0)
+                    )) {
+                        throw new \Exception('未知错误');
+                    }
+                }
+
+                $msg = "操作成功";
+            } catch (\Exception $e) {
+                $msg = "操作失败，{$e->getMessage()}";
+            }
+        }
+        
+        $page = (int) $request->get('page');
+        $page = $page <= 0 ? 1 : $page;
+
+        $offset = 10;
+
+        $dataCount = TransferRequestModel::count();
+        $data = TransferRequestModel::order(['status', 'id' => 'desc'])
+            ->limit(($page - 1) * $offset, $offset)
+            ->select();
+
+        View::assign(
+            'data',
+            [
+                'data'      => $data,
+                'dataCount' => $dataCount,
+                'page'      => $page,
+                'offset'    => $offset,
+                'currency'  => CurrencyModel::column('*', 'code'),
+                'msg'       => $msg
             ]
         );
         return View::fetch();

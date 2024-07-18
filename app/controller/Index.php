@@ -8,6 +8,7 @@ use app\service\Auth;
 use app\model\Currency as CurrencyModel;
 use app\model\Transactions as TransactionsModel;
 use app\model\Transactmode as TransactmodeModel;
+use app\model\TransferRequest as TransferRequestModel;
 
 class Index extends BaseController
 {
@@ -26,6 +27,7 @@ class Index extends BaseController
                 ->order('currency.sortid')
                 ->select()
         );
+        View::assign('pendingTransferCount', TransferRequestModel::where('status', '=', 0)->count());
         return View::fetch();
     }
 }

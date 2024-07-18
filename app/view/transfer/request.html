@@ -1,0 +1,130 @@
+{extend name="layout" /}
+
+{block name="title"}管理请款申请 - 账簿{/block}
+
+{block name="content"}
+        <a href="{:url('/')->domain(true)}">< 返回首页</a>
+        <p id="msg" style="display: none;"></p>
+        <div id="allList"></div>
+        <form method="post" action="" id="controlForm"><input type="hidden" name="action" id="action" /><input type="hidden" name="id" id="id" /></form>
+{/block}
+
+{block name="css"}
+    <style>
+        p {
+            margin: 5px 0
+        }
+        
+        ul {
+            margin: 5px 0;
+        }
+
+        ul li {
+            padding-top: 5px;
+        }
+
+        ul li:first-child {
+            padding-top: 0;
+        }
+    </style>
+{/block}
+
+{block name="javascript"}
+    <script>
+        var data = {:json_encode($data, JSON_UNESCAPED_UNICODE)};
+        console.log(data);
+
+        var entityMap = {
+            escape: {
+              '&': '&amp;',
+              '<': '&lt;',
+              '>': '&gt;',
+              '"': '&quot;',
+              "'": '&apos;',
+            },
+            unescape: {
+              '&amp;': "&",
+              '&apos;': "'",
+              '&gt;': ">",
+              '&lt;': "<",
+              '&quot;': '"',
+            }
+        };
+        var entityReg = {
+            escape: RegExp('[' + Object.keys(entityMap.escape).join('') + ']', 'g'),
+            unescape: RegExp('(' + Object.keys(entityMap.unescape).join('|') + ')', 'g')
+        }
+
+        // 将HTML转义为实体
+        function escape(html) {
+            if (typeof html !== 'string') return ''
+            return html.replace(entityReg.escape, function(match) {
+                return entityMap.escape[match]
+            })
+        }
+
+        // 将实体转回为HTML
+        function unescape(str) {
+            if (typeof str !== 'string') return ''
+            return str.replace(entityReg.unescape, function(match) {
+                return entityMap.unescape[match]
+            })
+        }
+
+        var formatMoney = function() {
+            var dom = document.getElementById('money');
+            var scale = data['currency'][document.getElementById('currency').value]['scale'];
+            dom.value = dom.value.replace(/[^\d\.]/g, '').replace(/(\d)(\.)(\d*)(\2*)(\d*)/g, '$1$2$3$5');
+            dom.value = dom.value ? parseFloat(dom.value).toFixed(scale) : '';
+        };
+
+        var confirmAction = function(id, action) {
+            document.getElementById('id').value = id;
+            document.getElementById('action').value = action;
+            var actionMap = {'accept': '入账', 'reject': '拒绝'};
+            if (confirm(`是否${actionMap[action]} #${id}？`)) {
+                document.getElementById('controlForm').submit();
+            } else {
+                alert('已取消操作');
+            }
+        };
+        
+        window.onload = function() {
+            var msg = data['msg'];
+            if (msg) {
+                document.getElementById('msg').innerHTML = `${msg}<hr/ >`;
+                document.getElementById('msg').style["display"] = "block";
+            }
+
+            if (!data['dataCount']) {
+                document.getElementById('allList').innerHTML = '<p>无申请记录</p>';
+                return;
+            }
+
+            if (data['page'] > 1 && data['dataCount'] && !data['data'].length) {
+                window.location.href = window.location.pathname;
+                return;
+            }
+
+            var listHtml = '<p>申请记录：</p><ul>';
+            for (var i = 0; i < data['data'].length; i++) {
+                var updateTime = `<br /><b>审核时间</b>：${data['data'][i]['updated_at']}`,
+                    control = `<br /><b>操作：</b><a onclick="confirmAction(${data['data'][i]['id']}, 'accept')" href="####">入账</a>&nbsp;<a onclick="confirmAction(${data['data'][i]['id']}, 'reject')" href="####">拒绝</a>`;
+                listHtml += `<li><b>ID</b>：${data['data'][i]['id']}<br /><b>交易对象</b>：${escape(data['data'][i]['loan_name_to'])} 向 ${escape(data['data'][i]['loan_name_from'])} 请款<br /><b>请款理由</b>：${data['data'][i]['txt'] ? escape(data['data'][i]['txt']) : '<i>无</i>'}<br /><b>交易币种</b>：${data['currency'][data['data'][i]['currency_code']]['name']} ${data['data'][i]['currency_code']}<br /><b>请款金额</b>：${parseFloat(data['data'][i]['money']).toFixed(data['currency'][data['data'][i]['currency_code']]['scale'])}<br /><b>申请状态</b>：${(['<span style="color: blue">待审核</span>', '<span style="color: green">已入账</span>', '<span style="color: red">已拒绝</span>'])[data['data'][i]['status']]}<br /><b>申请时间</b>：${data['data'][i]['created_at']}${data['data'][i]['updated_at'] ? updateTime : control}</li>`
+            }
+            listHtml += '</ul>';
+
+            var navbar = '';
+            if (data['page'] > 1) {
+                navbar += `<a href="?page=${data['page'] - 1}">上一页</a>`;
+            }
+            if (data['page'] * data['offset'] < data['dataCount']) {
+                navbar += `${navbar ? '&nbsp;' : ''}<a href="?page=${data['page'] + 1}">下一页</a>`;
+            }
+
+            listHtml += navbar ? `<p>${navbar}</p>` : '';
+
+            document.getElementById('allList').innerHTML = listHtml;
+        };
+    </script>
+{/block}

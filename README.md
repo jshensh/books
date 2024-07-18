@@ -54,7 +54,7 @@ CREATE TABLE `transfer_request` (
   `txt` text NOT NULL,
   `currency_code` varchar(10) NOT NULL,
   `money` decimal(20,8) UNSIGNED NOT NULL,
-  `status` tinyint(1) UNSIGNED NOT NULL COMMENT '[0 => 待审核, 1 => 已通过, 2 => 已拒绝]',
+  `status` tinyint(1) UNSIGNED NOT NULL COMMENT '[0 => 待审核, 1 => 已入账, 2 => 已拒绝]',
   `created_at` datetime NOT NULL DEFAULT current_timestamp(),
   `updated_at` datetime DEFAULT NULL,
   PRIMARY KEY (`id`)
