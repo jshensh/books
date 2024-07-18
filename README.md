@@ -16,6 +16,8 @@ ALTER TABLE `currency`
   ADD PRIMARY KEY (`code`);
 COMMIT;
 
+INSERT INTO `currency` (`code`, `name`, `scale`, `symbol`, `unit_name`, `sortid`) VALUES ('CNY', '人民币', '2', '¥', '元', '0');
+
 --
 -- 表 `statements`
 --
@@ -23,6 +25,7 @@ COMMIT;
 ALTER TABLE `statements` ADD `currency_code` VARCHAR(10) NOT NULL AFTER `id`;
 ALTER TABLE `statements` CHANGE `low` `low` DECIMAL(20,8) NOT NULL, CHANGE `high` `high` DECIMAL(20,8) NOT NULL, CHANGE `closed` `closed` DECIMAL(20,8) NOT NULL, CHANGE `income` `income` DECIMAL(20,8) NOT NULL DEFAULT '0.00', CHANGE `expend` `expend` DECIMAL(20,8) NOT NULL DEFAULT '0.00';
 ALTER TABLE `statements` DROP INDEX `t`, ADD INDEX `t` (`t`) USING BTREE;
+UPDATE `statements` SET `currency_code`='CNY';
 
 --
 -- 表 `transactions`
@@ -35,6 +38,7 @@ ALTER TABLE `transactions` CHANGE `money` `money` DECIMAL(20,8) NOT NULL, CHANGE
 --
 
 ALTER TABLE `transactmode` ADD `currency_code` VARCHAR(10) NOT NULL AFTER `id`;
+UPDATE `transactmode` SET `currency_code`='CNY';
 
 --
 -- 表 `loan`
