@@ -187,7 +187,7 @@ class Data
                     $transactions1->save([
                         'transactmode_id' => $outTransactMode,
                         'money'           => -$money,
-                        'txt'             => $outTransactMode === 1 ? $txt : '提现',
+                        'txt'             => $outTransactMode === (int) Transactmode::where('id', '=', $inTransactMode)->value('topup') ? $txt : '提现',
                         'amount'          => bcsub(
                             Transactions::order('id', 'desc') // 未锁表，暂未解决并发问题
                                 ->where('transactmode_id', '=', $outTransactMode)
@@ -200,7 +200,7 @@ class Data
                     ]);
                     $insertIds['transactions'][] = $transactions1->id;
 
-                    $txt = $inTransactMode === 1 ? '提现' : $txt;
+                    $txt = $inTransactMode === (int) Transactmode::where('id', '=', $outTransactMode)->value('withdrawal') ? '提现' : $txt;
                 } else {
                     // 只有发生实际的支出 / 收入操作时才操作统计数据
                     if ($money < 0) {

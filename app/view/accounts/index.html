@@ -87,7 +87,8 @@
             var data = {:json_encode($data, JSON_UNESCAPED_UNICODE)};
             updateTransactModeList(data['transactModeList']);
             document.getElementById('transactMode').onchange = function() {
-                var opg = this.value.match(/^(\d+_1|1_\d+)$/) && this.value !== "1_0" && this.value !== "0_1";
+                var explodedTransactMode = this.value.split('_');
+                var opg = (~~explodedTransactMode[0] > 0 && ~~explodedTransactMode[1] > 0);
                 document.getElementById('txtP').style["display"] = opg ? "none" : "block";
                 document.getElementById('loanP').style["display"] = opg ? "none" : "block";
                 document.getElementById('nameP').style["display"] = opg ? "none" : (document.getElementById('loan').checked && "block");
