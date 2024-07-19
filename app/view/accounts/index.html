@@ -89,14 +89,17 @@
             document.getElementById('transactMode').onchange = function() {
                 var explodedTransactMode = this.value.split('_');
                 var opg = (~~explodedTransactMode[0] > 0 && ~~explodedTransactMode[1] > 0);
+
+                if (!opg && document.getElementById('txtP').style["display"] === 'none') {
+                    document.getElementById('txt').value = "";
+                }
+                
                 document.getElementById('txtP').style["display"] = opg ? "none" : "block";
                 document.getElementById('loanP').style["display"] = opg ? "none" : "block";
                 document.getElementById('nameP').style["display"] = opg ? "none" : (document.getElementById('loan').checked && "block");
                 document.getElementById('isFrozenP').style["display"] = opg ? "none" : (document.getElementById('isFrozen').checked && "block");
                 if (opg) {
                     document.getElementById('txt').value = this.options[this.options.selectedIndex].text;
-                } else {
-                    document.getElementById('txt').value = "";
                 }
                 document.getElementById('loanL').innerHTML = this.value.match(/^(\d+_0)$/) ? "借出" : "贷入";
             };
