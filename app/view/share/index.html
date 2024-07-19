@@ -76,7 +76,7 @@
             var sumHtml = [];
             for (var i in sumMoney) {
                 var currencySymbol = currency[i].symbol;
-                sumHtml.push(`${(parseFloat(sumMoney[i]) > 0 ? "贷出" : "借入")} ${currency[i]['name']} ${currencySymbol}${Math.abs(parseFloat(sumMoney[i])).toFixed(currency[dataCurrencyCode]['scale'])} ${currency[i]['unit_name']}`);
+                sumHtml.push(`${(parseFloat(sumMoney[i]) > 0 ? "贷出" : "借入")} ${currency[i]['name']} ${currencySymbol}${Math.abs(parseFloat(sumMoney[i])).toFixed(currency[i]['scale'])} ${currency[i]['unit_name']}`);
             }
             document.getElementById('allList').innerHTML = toHtml + `<p>共计${sumHtml.join('，')}</p>`;
 
