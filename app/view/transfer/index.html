@@ -298,7 +298,7 @@
                         if (foreignLoanUser) {
                             command.push(`loan 表，${foreignLoanUser} 还款，金额 ${fullyFormattedForeignMoney}，交易方式 ${foreignTransactionMode}${foreignIsFrozen ? '，标记操作冻结资产' : ''}`);
                             command.push(`transactions 表，${foreignLoanUser} 还款，金额 ${fullyFormattedForeignMoney}，交易方式 ${foreignTransactionMode}${foreignIsFrozen ? '，备注操作冻结资产' : ''}`);
-                            realCommand.push({'mode': `0_${foreignTransactionModeId}`, 'txt': txt, 'money': foreignMoney, 'name': foreignMoney, 'isFrozen': ~~foreignIsFrozen});
+                            realCommand.push({'mode': `0_${foreignTransactionModeId}`, 'txt': txt, 'money': foreignMoney, 'name': foreignLoanUser, 'isFrozen': ~~foreignIsFrozen});
                         }
 
                         command.push(`transactions 表，结汇 ${simplyFormattedChineseForeignMoney} （汇率 ${foreignCurrencyCode} 100.0000 = ${localCurrencyCode} ${exchangeRate}），金额 ${fullyFormattedForeignNegativeMoney}，交易方式 ${foreignTransactionMode}`);
