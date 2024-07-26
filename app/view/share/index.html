@@ -64,8 +64,11 @@
 
             for (var dataCurrencyCode in loanData) {
                 var currencySymbol = currency[dataCurrencyCode].symbol;
-                var forzenAmountHtml = loanData[dataCurrencyCode]['frozenAmount'] ? `<br /><a href="{:url('/')->domain(true)}share/${encodeURIComponent(token)}/${dataCurrencyCode}/?is_frozen=1">（含${(parseFloat(loanData[dataCurrencyCode]['frozenAmount']) > 0 ? "贷出" : "借入")}冻结资金 ${currency[dataCurrencyCode]['name']} ${currencySymbol}${Math.abs(parseFloat(loanData[dataCurrencyCode]['frozenAmount'])).toFixed(currency[dataCurrencyCode]['scale'])} ${currency[dataCurrencyCode]['unit_name']}）</a>` : ''
-                toHtml += `<li><a href="{:url('/')->domain(true)}share/${encodeURIComponent(token)}/${dataCurrencyCode}">${loanData[dataCurrencyCode]["minT"]} 起合计${(parseFloat(loanData[dataCurrencyCode]["all"]) > 0 ? "贷出" : "借入")} ${currency[dataCurrencyCode]['name']} ${currencySymbol}${Math.abs(parseFloat(loanData[dataCurrencyCode]["all"])).toFixed(currency[dataCurrencyCode]['scale'])} ${currency[dataCurrencyCode]['unit_name']}</a>${forzenAmountHtml}</li>`;
+
+                var forzenAmountHtml = `<a href="{:url('/')->domain(true)}share/${encodeURIComponent(token)}/${dataCurrencyCode}/?is_frozen=1">${(parseFloat(loanData[dataCurrencyCode]['frozenAmount']) > 0 ? "贷出" : "借入")}冻结资金 ${currencySymbol}${Math.abs(parseFloat(loanData[dataCurrencyCode]['frozenAmount'])).toFixed(currency[dataCurrencyCode]['scale'])} ${currency[dataCurrencyCode]['unit_name']}</a>`;
+                var unforzenAmountHtml = `<a href="{:url('/')->domain(true)}share/${encodeURIComponent(token)}/${dataCurrencyCode}">${(parseFloat(loanData[dataCurrencyCode]['all']) > 0 ? "贷出" : "借入")}非冻结资金 ${currencySymbol}${Math.abs(parseFloat(loanData[dataCurrencyCode]["all"]) - parseFloat(loanData[dataCurrencyCode]['frozenAmount'])).toFixed(currency[dataCurrencyCode]['scale'])} ${currency[dataCurrencyCode]['unit_name']}</a>`;
+
+                toHtml += `<li>${loanData[dataCurrencyCode]["minT"]} 起合计${(parseFloat(loanData[dataCurrencyCode]["all"]) > 0 ? "贷出" : "借入")} ${currency[dataCurrencyCode]['name']} ${currencySymbol}${Math.abs(parseFloat(loanData[dataCurrencyCode]["all"])).toFixed(currency[dataCurrencyCode]['scale'])} ${currency[dataCurrencyCode]['unit_name']}</a><br />（${unforzenAmountHtml}，${forzenAmountHtml}）</li>`;
                 if (typeof sumMoney[currency[dataCurrencyCode]['code']] === 'undefined') {
                     sumMoney[currency[dataCurrencyCode]['code']] = 0.00000000;
                 }
