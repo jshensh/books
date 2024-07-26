@@ -358,7 +358,7 @@
                     if (this.options[this.options.selectedIndex].getAttribute('data-create') === 'true') {
                         document.getElementById(`${this.id}P`).innerHTML = '';
                         var labelDom = newDom('label', null, '交易对象：');
-                        labelDom.appendChild(newDom('input', null, null, this.id, ''));
+                        labelDom.appendChild(newDom('input', this.id, null, this.id, ''));
                         document.getElementById(`${this.id}P`).appendChild(labelDom);
                         document.getElementById(isFrozenDomMap[this.id]).style.display = 'block';
                     }
