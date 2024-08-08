@@ -20,7 +20,6 @@ class Longbridge extends BaseController
         $msg = '';
         
         if ($request->isPost()) {
-            $step = (int) $request->get('step');
             try {
                 if ($request->file('pdf')) {
                     $this->validate($request->file(), ['pdf' => ['file', 'fileMime' => 'application/pdf']]);
