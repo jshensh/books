@@ -1,0 +1,207 @@
+{extend name="layout" /}
+
+{block name="title"}长桥证券日结单批量入账 - 账簿{/block}
+
+{block name="css"}
+    <style>
+        p {
+            margin: 3px 0
+        }
+        ul {
+            margin: 3px 0;
+        }
+    </style>
+    <link rel="stylesheet" href="{:url('/static/css/zzsc.css')->domain(true)}">
+{/block}
+
+{block name="content"}
+        <a href="{:url('/')->domain(true)}">< 返回首页</a>
+        <p id="msg" style="display: none;"></p>
+        <form action="longbridge" method="post" enctype="multipart/form-data" id="step1Form">
+            <p>第一步：上传日结单</p>
+            <hr />
+            <p><label>选择文件：<input type="file" name="pdf" accept="application/pdf" /></label></p>
+            <p><label>文件密码：<input type="text" name="password" value="" /></label></p>
+            <p><input type="submit" value="提交" /></p>
+        </form>
+        <form action="longbridge" method="post" id="step2Form">
+            <p>第二步：核对日结单</p>
+            <hr />
+            <p id="loanUserP"><label>交易对象：<select id="loanUser"><optgroup label="自有资金"><option value="">自有资金</option></optgroup><optgroup id="loanUserContainer" label="债权人/债务人"></optgroup></select></p>
+            <p id="isFrozenP" style="display: none;">　　　　　<input type="checkbox" id="isFrozen" value="1" checked="checked" /><label for="isFrozen">操作冻结资产</label></p>
+            <p><label>USD 交易方式：<select id="usdTransactionMode"></select></p>
+            <p><label>HKD 交易方式：<select id="hkdTransactionMode"></select></p>
+            <div class="container" style="position: relative;">
+                <div class="block">
+                    <div class="title">入账至 USD</div>
+                    <ul id="usdList" class="block__list block__list_tags"></ul>
+                </div>
+            </div>
+            <div class="container" style="position: relative;">
+                <div class="block">
+                    <div class="title">入账至 HKD</div>
+                    <ul id="hkdList" class="block__list block__list_tags"></ul>
+                </div>
+            </div>
+            <div class="container" style="position: relative;">
+                <div class="block">
+                    <div class="title">不入账</div>
+                    <ul id="noneList" class="block__list block__list_tags"></ul>
+                </div>
+            </div>
+            <input id="realCommandJson" name="realCommandJson" style="display: none;" value="{}" />
+            {:token_field()}
+            <p><input type="submit" value="提交" /></p>
+        </form>
+{/block}
+
+{block name="javascript"}
+    <script src="{:url('/static/js/Sortable.js')->domain(true)}"></script>
+    <script>
+        window.onload = function() {
+            var detail = {:json_encode($detail, JSON_UNESCAPED_UNICODE)},
+                loanUser = {:json_encode($loanUser, JSON_UNESCAPED_UNICODE)},
+                transactmode = {:json_encode($transactmode, JSON_UNESCAPED_UNICODE)},
+                msg = {:json_encode($msg, JSON_UNESCAPED_UNICODE)};
+
+            if (msg) {
+                document.getElementById('msg').innerHTML = `${msg}<hr/ >`;
+                document.getElementById('msg').style["display"] = "block";
+            }
+
+            if (!detail.length) {
+                document.getElementById('step2Form').style.display = 'none';
+                return;
+            }
+            
+            document.getElementById('step1Form').style.display = 'none';
+
+            var newDom = function(tag, id, innerHTML, name, value) {
+                var re = document.createElement(tag);
+                id !== null && (re.id = id);
+                name !== null && (re.name = name);
+                value !== null && (re.value = value);
+                innerHTML !== null && (tag === "optgroup" ? re.label = innerHTML : re.appendChild(typeof innerHTML === "object" ? innerHTML : document.createTextNode(innerHTML)));
+                return re;
+            };
+
+            var currency = ['usd', 'hkd'];
+            for (var i = 0; i < currency.length; i++) {
+                document.getElementById(`${currency[i]}TransactionMode`).innerHTML = '';
+                for (var j in transactmode) {
+                    if (transactmode[j]['currency_code'].toLowerCase() === currency[i]) {
+                        var tmpDom = newDom("option", null, transactmode[j]['name'], null, transactmode[j]['id']);
+                        if (transactmode[j]['name'] === '长桥证券') {
+                            tmpDom.setAttribute('selected', 'selected');
+                        }
+                        document.getElementById(`${currency[i]}TransactionMode`).appendChild(tmpDom);
+                    }
+                }
+            }
+
+            for (var j = 0; j < loanUser.length; j++) {
+                document.getElementById('loanUserContainer').appendChild(newDom("option", null, loanUser[j], null, loanUser[j]));
+            }
+            var tmpOptionDom = newDom("option", null, '新建', null, '');
+            tmpOptionDom.setAttribute('data-create', 'true');
+            document.getElementById('loanUserContainer').appendChild(tmpOptionDom);
+
+            document.getElementById('loanUser').addEventListener('change', function() {
+                document.getElementById('isFrozenP').style.display = (this.value !== '' ? 'block' : 'none');
+                if (this.options[this.options.selectedIndex].getAttribute('data-create') === 'true') {
+                    document.getElementById('loanUserP').innerHTML = '';
+                    var labelDom = newDom('label', null, '交易对象：');
+                    labelDom.appendChild(newDom('input', this.id, null, this.id, ''));
+                    document.getElementById('loanUserP').appendChild(labelDom);
+                    document.getElementById('isFrozenP').style.display = 'block';
+                }
+                elementChanged();
+            });
+
+            var createDOM = function(data, html, to) {
+                var tdom = document.createElement('li');
+                for (var i in data) {
+                    tdom.setAttribute(`data-${i}`, data[i]);
+                }
+                tdom.innerHTML = html;
+                document.getElementById(to).appendChild(tdom);
+                return true;
+            };
+
+            var elementChanged = function () {
+                var obj = {'usd': [], 'hkd': []};
+                for (var i in obj) {
+                    var doms = document.getElementById(`${i}List`).getElementsByTagName("li");
+                    for (var j = 0; j < doms.length; j++) {
+                        var tmpMoney = parseFloat(doms[j].getAttribute('data-transcation-amount'));
+                        if (!tmpMoney) {
+                            continue;
+                        }
+                        obj[i].push({
+                            'seq': ~~doms[j].getAttribute('data-seq'),
+                            'mode': tmpMoney < 0 ? `${document.getElementById(`${i}TransactionMode`).value}_0` : `0_${document.getElementById(`${i}TransactionMode`).value}`,
+                            'txt': doms[j].getAttribute('data-description'),
+                            'money': Math.abs(tmpMoney).toFixed(2),
+                            'name': document.getElementById('loanUser').value,
+                            'isFrozen': ~~document.getElementById('isFrozen').checked
+                        });
+                        obj[i].push({
+                            'seq': ~~doms[j].getAttribute('data-seq') + 0.5,
+                            'mode': `${document.getElementById(`${i}TransactionMode`).value}_0`,
+                            'txt': `${doms[j].getAttribute('data-description')}手续费`,
+                            'money': doms[j].getAttribute('data-fee'),
+                            'name': document.getElementById('loanUser').value,
+                            'isFrozen': ~~document.getElementById('isFrozen').checked
+                        });
+                    }
+                    obj[i] = obj[i].sort((a, b) => a['seq'] - b['seq']);
+                }
+                document.getElementById('realCommandJson').value = JSON.stringify(obj['usd'].concat(obj['hkd']));
+            };
+
+            for (var i = 0; i < detail.length; i++) {
+                detail[i]['instrument'] = detail[i]['instrument'].replace(/\n/g, ' ');
+                detail[i]['order_date'] = detail[i]['order_date'].replace(/\./g, '-');
+                detail[i]['price'] = detail[i]['price'].replace(/,/g, '');
+                detail[i]['quantity'] = detail[i]['quantity'].replace(/,/g, '');
+                detail[i]['change_amount'] = detail[i]['change_amount'].replace(/,/g, '');
+                detail[i]['transcation_amount'] = detail[i]['transcation_amount'].replace(/,/g, '');
+                detail[i]['fee'] = Math.abs(Math.abs(parseFloat(detail[i]['change_amount'])) - parseFloat(detail[i]['transcation_amount']));
+                createDOM(
+                    {
+                        seq: i,
+                        description: `${detail[i]['order_date']} ${detail[i]['order_time']} EST #${detail[i]['id']} ${detail[i]['direction']} ${detail[i]['instrument']} ${detail[i]['price']} ${detail[i]['quantity']} 股`,
+                        'transcation-amount': (parseFloat(detail[i]['change_amount']) + detail[i]['fee']).toFixed(2),
+                        fee: (-detail[i]['fee']).toFixed(2)
+
+                    },
+                    `${i + 1}/${detail.length}: #${detail[i]['id']}<br />${detail[i]['direction']} ${detail[i]['instrument']} ${detail[i]['price']} ${detail[i]['quantity']} 股<br />交易金额：${(parseFloat(detail[i]['change_amount']) + detail[i]['fee']).toFixed(2)}（另收手续费 ${detail[i]['fee'].toFixed(2)}）<br />交易时间：${detail[i]['order_date']} ${detail[i]['order_time']} EST`,
+                    'usdList'
+                );
+            }
+
+            new Sortable(usdList, {
+                group: "transactions",
+                onAdd: function (evt){ elementChanged(); },
+                onUpdate: function (evt){ elementChanged(); },
+                onRemove: function (evt){ elementChanged(); }
+            });
+
+            new Sortable(hkdList, {
+                group: "transactions",
+                onAdd: function (evt){ elementChanged(); },
+                onUpdate: function (evt){ elementChanged(); },
+                onRemove: function (evt){ elementChanged(); }
+            });
+
+            new Sortable(noneList, {
+                group: "transactions",
+                onAdd: function (evt){ elementChanged(); },
+                onUpdate: function (evt){ elementChanged(); },
+                onRemove: function (evt){ elementChanged(); }
+            });
+
+            elementChanged();
+        };
+    </script>
+{/block}

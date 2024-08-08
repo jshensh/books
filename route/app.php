@@ -23,6 +23,7 @@ Route::group(function() {
     Route::post('loan/share$', 'Loan/share');
     Route::rule('transfer$', 'Transfer/index');
     Route::rule('transfer/request$', 'Transfer/request');
+    Route::rule('longbridge$', 'Longbridge/index');
 
     Route::group(function() {
 
