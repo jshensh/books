@@ -125,46 +125,45 @@ class Data
                     }
                 }
 
+                $loanNewSum = (float)bcadd($hisLoanSum, $money, $scale);
+                
                 /** 当一笔借款 / 还款操作数额过度，导致借贷关系反转时需要拆分单笔账目 */
-                if (($hisLoanSum ^ $money) < 0 && (float)$hisLoanSum !== 0.00) {
-                    $loanNewSum = (float)bcadd($hisLoanSum, $money, $scale);
-                    if (($hisLoanSum ^ $loanNewSum) < 0 && (float)$loanNewSum !== 0.00) {
-                        $money = $loanNewSum;
+                if ((float)$hisLoanSum !== 0.00 && $loanNewSum !== 0.00 && (bccomp($hisLoanSum, '0', $scale)) !== bccomp($loanNewSum, '0', $scale)) {
+                    $money = $loanNewSum;
+                        
+                    $loan1 = new Loan;
+                    $loan1->save([
+                        'name'            => $loanName,
+                        'transactmode_id' => $tmpTransactMode,
+                        'money'           => -$hisLoanSum,
+                        'txt'             => $txtForLoan,
+                        'is_frozen'       => $isFrozen,
+                        't'               => $t
+                    ]); 
+                    $insertIds['loan'][] = $loan1->id;
 
-                        $loan1 = new Loan;
-                        $loan1->save([
-                            'name'            => $loanName,
-                            'transactmode_id' => $tmpTransactMode,
-                            'money'           => -$hisLoanSum,
-                            'txt'             => $txtForLoan,
-                            'is_frozen'       => $isFrozen,
-                            't'               => $t
-                        ]);
-                        $insertIds['loan'][] = $loan1->id;
+                    $transactions1 = new Transactions;
+                    $transactions1->save([
+                        'transactmode_id' => $tmpTransactMode,
+                        'money'           => -$hisLoanSum,
+                        'txt'             => $txt,
+                        'amount'          => bcsub(
+                            Transactions::order('id', 'desc') // 未锁表，暂未解决并发问题
+                                ->where('transactmode_id', '=', $tmpTransactMode)
+                                ->limit(1)
+                                ->value('amount', 0.00),
+                            $hisLoanSum,
+                            $scale
+                        ),  
+                        't'               => $t
+                    ]); 
+                    $insertIds['transactions'][] = $transactions1->id;
 
-                        $transactions1 = new Transactions;
-                        $transactions1->save([
-                            'transactmode_id' => $tmpTransactMode,
-                            'money'           => -$hisLoanSum,
-                            'txt'             => $txt,
-                            'amount'          => bcsub(
-                                Transactions::order('id', 'desc') // 未锁表，暂未解决并发问题
-                                    ->where('transactmode_id', '=', $tmpTransactMode)
-                                    ->limit(1)
-                                    ->value('amount', 0.00),
-                                $hisLoanSum,
-                                $scale
-                            ),
-                            't'               => $t
-                        ]);
-                        $insertIds['transactions'][] = $transactions1->id;
-
-                        if ($money > 0) {
-                            $txt = "借款";
-                        } else {
-                            $txt = $txtForLoan ? "{$loanName}借款 ({$txtForLoan})" : "{$loanName}借款";
-                        }
-                    }
+                    if ($money > 0) {
+                        $txt = "借款";
+                    } else {
+                        $txt = $txtForLoan ? "{$loanName}借款 ({$txtForLoan})" : "{$loanName}借款";
+                    }   
                 }
 
                 $loan2 = new Loan;
