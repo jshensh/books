@@ -75,10 +75,48 @@
         };
         
         var updateExchangeRate = function() {
-            var foreignMoney = document.getElementById('foreignMoney').value, localMoney = document.getElementById('localMoney').value;
-            if (localMoney && foreignMoney) {
-                var tmpRate = parseFloat(localMoney) / parseFloat(foreignMoney) * 100;
-                document.getElementById('exchangeRate').value = tmpRate.toFixed(4);
+            if (document.getElementById('localCurrency').value === document.getElementById('foreignCurrency').value) {
+                return;
+            }
+            
+            var foreignMoney = document.getElementById('foreignMoney').value,
+                localMoney = document.getElementById('localMoney').value,
+                exchangeRate = document.getElementById('exchangeRate').value,
+                thisDomId = typeof arguments[0] !== 'undefined' ? arguments[0].id : '';
+
+            if (localMoney && foreignMoney && !exchangeRate && thisDomId !== 'exchangeRate') {
+                exchangeRate = parseFloat(localMoney) / parseFloat(foreignMoney) * 100;
+                document.getElementById('exchangeRate').value = exchangeRate.toFixed(4);
+                return;
+            }
+
+            if (localMoney && !foreignMoney && exchangeRate && thisDomId !== 'foreignMoney') {
+                foreignMoney = parseFloat(localMoney) / parseFloat(exchangeRate) * 100;
+                document.getElementById('foreignMoney').value = foreignMoney.toFixed(data['currency'][document.getElementById('foreignCurrency').value]['scale']);
+                return;
+            }
+
+            if (!localMoney && foreignMoney && exchangeRate && thisDomId !== 'localMoney') {
+                localMoney = parseFloat(exchangeRate) * parseFloat(foreignMoney) / 100;
+                document.getElementById('localMoney').value = localMoney.toFixed(data['currency'][document.getElementById('localCurrency').value]['scale']);
+                return;
+            }
+
+            if (localMoney && foreignMoney && exchangeRate) {
+                switch (thisDomId) {
+                    case 'exchangeRate':
+                        foreignMoney = parseFloat(localMoney) / parseFloat(exchangeRate) * 100;
+                        document.getElementById('foreignMoney').value = foreignMoney.toFixed(data['currency'][document.getElementById('foreignCurrency').value]['scale']);
+                        break;
+
+                    case 'foreignMoney':
+                        // no break
+                    case 'localMoney':
+                        exchangeRate = parseFloat(localMoney) / parseFloat(foreignMoney) * 100;
+                        document.getElementById('exchangeRate').value = exchangeRate.toFixed(4);
+                        break;
+
+                }
             }
         };
 
@@ -374,27 +412,28 @@
                     this.value = this.value.replace(/[^\d\.]/g, '').replace(/(\d)(\.)(\d*)(\2*)(\d*)/g, '$1$2$3$5');
                     this.value = this.value ? parseFloat(this.value).toFixed(scale) : '';
 
-                    updateExchangeRate();
+                    updateExchangeRate(this);
                     updatePreview();
                 });
             }
 
             document.getElementsByName("direction").forEach(function() {
                 this.addEventListener('change', function() {
-                    updateExchangeRate();
                     updatePreview();
                 });
             });
 
-            document.getElementById('exchangeRate').addEventListener('focus', function() {
-                document.getElementById('foreignMoney').value = '';
-            });
+            // document.getElementById('exchangeRate').addEventListener('focus', function() {
+            //     document.getElementById('foreignMoney').value = '';
+            // });
 
             document.getElementById('exchangeRate').addEventListener('blur', function() {
                 this.value = this.value.replace(/[^\d\.]/g, '').replace(/(\d)(\.)(\d*)(\2*)(\d*)/g, '$1$2$3$5');
                 this.value = this.value ? parseFloat(this.value).toFixed(4) : '';
-                document.getElementById('foreignMoney').value = (document.getElementById('localMoney').value && this.value) ? parseFloat(document.getElementById('localMoney').value) / parseFloat(this.value) * 100 : '';
-                document.getElementById('foreignMoney').dispatchEvent(new Event("blur"));
+                // document.getElementById('foreignMoney').value = (document.getElementById('localMoney').value && this.value) ? parseFloat(document.getElementById('localMoney').value) / parseFloat(this.value) * 100 : '';
+                // document.getElementById('foreignMoney').dispatchEvent(new Event("blur"));
+                updateExchangeRate(this);
+                updatePreview();
             });
 
             var isFrozenDom = ['localIsFrozen', 'foreignIsFrozen'];
