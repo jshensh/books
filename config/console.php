@@ -7,5 +7,6 @@ return [
     'commands' => [
         \app\command\ResetPassword::class,
         \app\command\ResetLoanShareKey::class,
+        \app\command\FixData::class
     ],
 ];
