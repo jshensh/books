@@ -124,7 +124,6 @@ ${new Date(yezs[min][0]).Format("yyyy-MM-dd")} 至 ${new Date(yezs[max][0]).Form
 共计 ${currencySymbol}${allSum.toFixed(currency.scale)} ${currency.unit_name}，平均 ${currencySymbol}${(allSum / (max - min + 1)).toFixed(currency.scale)} ${currency.unit_name}<br />\
 时段内：开 ${currencySymbol}${yezs[min][1].toFixed(currency.scale)} ${currency.unit_name}，收 ${currencySymbol}${yezs[max][4].toFixed(currency.scale)} ${currency.unit_name}</p>`
                 );
-                $("#result").css('height', (~~($("#result").css('height').substring(0, $("#result").css('height').length - 2)) + 70) + 'px');
 
                 /*console.log(yezs[min][1],yezs[max][4],
                     new Date(yezs[min][0]).Format("yyyy-MM-dd"),
