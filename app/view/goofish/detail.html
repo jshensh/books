@@ -106,7 +106,7 @@
             document.getElementById('name').addEventListener('change', function() {
                 if (this.options[this.options.selectedIndex].getAttribute('data-create') === 'true') {
                     document.getElementById('nameP').innerHTML = '';
-                    var labelDom = newDom('label', null, '交易对象：');
+                    var labelDom = newDom('label', null, '资金对象：');
                     labelDom.appendChild(newDom('input', null, null, this.id, ''));
                     document.getElementById('nameP').appendChild(labelDom);
                 }
