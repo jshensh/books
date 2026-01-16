@@ -329,7 +329,7 @@ class Goofish extends BaseController
             ->buildSql();
         $data = GoofishModel::alias('t1')
             ->rightJoin([$subSql => 't2'], 't1.id = t2.mid')
-            ->order(['id' => 'desc'])
+            ->orderRaw("CASE WHEN t1.event = 'CLOSE' THEN 1 ELSE 0 END ASC, t1.id DESC")
             ->limit(($page - 1) * $offset, $offset)
             ->select()
             ->toArray();
