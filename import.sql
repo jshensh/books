@@ -192,3 +192,35 @@ ALTER TABLE `transactmode`
 ALTER TABLE `transfer_request`
   MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT;
 COMMIT;
+
+--
+-- Table structure for table `goofish`
+--
+
+CREATE TABLE `goofish` (
+  `id` int(10) UNSIGNED NOT NULL,
+  `order_no` varchar(64) NOT NULL COMMENT '平台订单号',
+  `name` varchar(64) NOT NULL DEFAULT '' COMMENT '实际出款/入款人',
+  `trustee` varchar(64) NOT NULL DEFAULT '' COMMENT '托管人姓名',
+  `event` enum('CREATE','ORDER_INCOME','ORDER_REFUND','SHIP_FEE_OUT','SHIP_FEE_RETURN','PLATFORM_FEE','ROLLBACK','CLOSE') NOT NULL COMMENT '业务事件类型（金额方向由事件固定）',
+  `transactmode_id` int(10) UNSIGNED NOT NULL DEFAULT 0,
+  `money` decimal(18,8) UNSIGNED NOT NULL DEFAULT 0.00000000 COMMENT '事件金额，正数；方向由 event 决定',
+  `note` varchar(255) NOT NULL DEFAULT '' COMMENT '注释说明',
+  `is_rollback` tinyint(1) NOT NULL DEFAULT 0 COMMENT '是否为冲正事件',
+  `created_at` datetime NOT NULL DEFAULT current_timestamp() COMMENT '时间戳'
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='闲鱼交易事件日志表（只增不改）。方向规则：CREATE:        无金额ORDER_INCOME:  trustee += money, name -= moneyORDER_REFUND:  name += money, trustee -= moneySHIP_FEE_OUT:  name += money, trustee -= moneySHIP_FEE_RETURN: name += money, trustee -= moneyPLATFORM_FEE:  name += money, trustee -= money';
+
+--
+-- Indexes for table `goofish`
+--
+ALTER TABLE `goofish`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `idx_event` (`event`),
+  ADD KEY `idx_trustee` (`trustee`);
+
+--
+-- AUTO_INCREMENT for table `goofish`
+--
+ALTER TABLE `goofish`
+  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=1;
+COMMIT;
