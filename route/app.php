@@ -13,6 +13,7 @@ use think\facade\Route;
 Route::pattern([
     'currency' => '[a-zA-Z\(\)]+',
     'token'    => '[^/]+',
+    'orderNo'  => '[a-zA-Z0-9]{5,64}'
 ]);
 
 Route::group(function() {
@@ -24,6 +25,8 @@ Route::group(function() {
     Route::rule('transfer$', 'Transfer/index');
     Route::rule('transfer/request$', 'Transfer/request');
     Route::rule('longbridge$', 'Longbridge/index');
+    Route::rule('goofish$', 'Goofish/index');
+    Route::rule('goofish/:orderNo$', 'Goofish/detail');
 
     Route::group(function() {
 

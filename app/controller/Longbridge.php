@@ -37,6 +37,7 @@ class Longbridge extends BaseController
                     // preg_match('/(\d{4}\.\d{2}\.\d{2})\\n综合账户⽇结单/s', $text, $date);
                     // dump($date);
                     $text = preg_replace('/\n[^\n]*?Page \d+ of \d+\n\d{4}\.\d{2}\.\d{2}\n综合账户⽇结单\n/s', '', $text);
+                    $text = str_replace('⼊', '入', $text);
                     // preg_match_all('/  (.*?)([\-\.\d%]+|N\/A) +([\-\.\d,%]+|N\/A) +([\-\.\d,%]+|N\/A) +([\-\.\d,%]+|N\/A) +([\-\.\d,%]+|N\/A) +([\-\.\d,%]+|N\/A) +([\-\.\d,%]+|N\/A) +([\-\.\d,%]+|N\/A) +([\-\.\d,%]+|N\/A)\n/s', substr($text, 0, strpos($text, '下单时间')), $holding);
                     // dump($holding);
                     preg_match_all('/(?<order_date>\d{4}\.\d{2}\.\d{2}) (\d{4}\.\d{2}\.\d{2}) +(?<id>OS\d+) +(?<direction>.*?) +(?<instrument>.*?)(?: +|\n)(?<quantity>[\.\d,]+) +(?<price>[\.\d,]+) +(?<transcation_amount>[\.\d,]+) +(?<change_amount>[\-\.\d,]+)\n下单时间 成交时间数量 平均价格\n(?<order_time>[\d:]{8}) EST/s', $text, $detail, PREG_SET_ORDER);

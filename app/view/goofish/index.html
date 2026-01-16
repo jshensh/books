@@ -1,0 +1,92 @@
+{extend name="layout" /}
+
+{block name="title"}闲鱼订单跟踪管理 - 账簿{/block}
+
+{block name="content"}
+        <a href="{:url('/')->domain(true)}">< 返回首页</a>
+        <p id="msg" style="display: none;"></p>
+        <form action="" method="post">
+            <input type="hidden" name="event" id="event" value="CREATE" />
+            {:token_field()}
+
+            <p><label>订单号：<input type="text" name="orderNo" id="orderNo" autocomplete="off" /></label>&nbsp;&nbsp;<input type="submit" name="send" id="send" value="创建" /></p>
+        </form>
+        <hr />
+        <div id="allList"></div>
+{/block}
+
+{block name="javascript"}
+    <script>
+        var data = {:json_encode($data, JSON_UNESCAPED_UNICODE)};
+
+        window.onload = function() {
+            var msg = data['msg'];
+            if (msg) {
+                document.getElementById('msg').innerHTML = `${msg}<hr/ >`;
+                document.getElementById('msg').style["display"] = "block";
+            }
+
+            if (!data['dataCount']) {
+                document.getElementById('allList').innerHTML = '<p>无闲鱼订单</p>';
+                return;
+            }
+
+            if (data['page'] > 1 && data['dataCount'] && !data['data'].length) {
+                window.location.href = window.location.pathname;
+                return;
+            }
+
+            var listHtml = '<p>订单列表：</p><ul>';
+            for (var i = 0; i < data['data'].length; i++) {
+                var itemList = '';
+                if (data['data'][i]['items'].length) {
+                    itemList += '<b>商品列表</b>：<br /><ul><li>';
+                    itemList += data['data'][i]['items'].join('</li><li>');
+                    itemList += '</li></ul>';
+                }
+                listHtml += `<li><b>订单号</b>：<a href="{:url('/goofish/')}${data['data'][i]['order_no']}">${data['data'][i]['order_no']}</a><br /><b>当前状态</b>：${data['data'][i]['event']}<br />${itemList}<b>更新时间</b>：${data['data'][i]['created_at']}</li>`
+            }
+            listHtml += '</ul>';
+
+            var navbar = '';
+            if (data['page'] > 1) {
+                navbar += `<a href="?page=${data['page'] - 1}">上一页</a>`;
+            }
+            if (data['page'] * data['offset'] < data['dataCount']) {
+                navbar += `${navbar ? '&nbsp;' : ''}<a href="?page=${data['page'] + 1}">下一页</a>`;
+            }
+
+            listHtml += navbar ? `<p>${navbar}</p>` : '';
+
+            document.getElementById('allList').innerHTML = listHtml;
+        };
+    </script>
+{/block}
+
+{block name="css"}
+    <style>
+        p {
+            margin: 5px 0
+        }
+        
+        ul {
+            margin: 5px 0;
+        }
+
+        ul li {
+            padding-top: 5px;
+        }
+
+        ul li ul {
+            margin: 0;
+        }
+
+        ul li ul li {
+            padding-top: 0;
+        }
+
+        ul li:first-child {
+            padding-top: 0;
+        }
+    </style>
+{/block}
